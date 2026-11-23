@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clinic ERP – Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f1f2ee;--surface:#ffffff;--sunk:#eaece7;--ink:#14201c;--muted:#5c6964;--line:#dce1db;
+  --pri:#1d4a3f;--pri-ink:#ffffff;--pri-soft:#e1ebe5;--brass:#ad874b;
+  --side-bg:#0f231e;--side-ink:#eef2ef;--side-muted:#9cb1a9;--side-hover:#183129;--side-active:#213f36;
+  --ok:#2c7650;--ok-soft:#e2f0e6;--warn:#9b5f17;--warn-soft:#f6ecdc;--bad:#a5322a;--bad-soft:#f8e8e5;
+  --enamel:#fbfaf6;--root:#ece2cf;--tline:#99a39e;
+  --t-decay:#c27a2a;--t-filled:#3a6898;--t-rct:#7a4b76;--t-crown:#ad874b;--t-implant:#2a786a;--t-missing:#99a39e;
+  --lift:0 1px 2px rgba(16,24,40,.05),0 0 0 1px var(--line);
+  --float:0 10px 30px rgba(16,24,40,.16),0 0 0 1px rgba(16,24,40,.06);
+  color-scheme:light;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0c1311;--surface:#131c19;--sunk:#1a2420;--ink:#e6ece8;--muted:#97a8a1;--line:#25312d;
+  --pri:#8cc7b1;--pri-ink:#0b1f1a;--pri-soft:#1a2f28;--brass:#c9a46a;
+  --side-bg:#080e0c;--side-ink:#e6ece8;--side-muted:#8ea39b;--side-hover:#13201b;--side-active:#1b2d27;
+  --ok:#6fcf9c;--ok-soft:#14301f;--warn:#e2b06a;--warn-soft:#30250f;--bad:#ee8a7f;--bad-soft:#3a1a16;
+  --enamel:#ebe7dc;--root:#c9bca2;--tline:#6f7b76;
+  --t-decay:#e09a45;--t-filled:#6f9bd0;--t-rct:#b083ab;--t-crown:#c9a46a;--t-implant:#4fb09c;--t-missing:#5c6964;
+  --lift:0 0 0 1px var(--line);--float:0 10px 30px rgba(0,0,0,.5),0 0 0 1px var(--line);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0c1311;--surface:#131c19;--sunk:#1a2420;--ink:#e6ece8;--muted:#97a8a1;--line:#25312d;
+  --pri:#8cc7b1;--pri-ink:#0b1f1a;--pri-soft:#1a2f28;--brass:#c9a46a;
+  --side-bg:#080e0c;--side-ink:#e6ece8;--side-muted:#8ea39b;--side-hover:#13201b;--side-active:#1b2d27;
+  --ok:#6fcf9c;--ok-soft:#14301f;--warn:#e2b06a;--warn-soft:#30250f;--bad:#ee8a7f;--bad-soft:#3a1a16;
+  --enamel:#ebe7dc;--root:#c9bca2;--tline:#6f7b76;
+  --t-decay:#e09a45;--t-filled:#6f9bd0;--t-rct:#b083ab;--t-crown:#c9a46a;--t-implant:#4fb09c;--t-missing:#5c6964;
+  --lift:0 0 0 1px var(--line);--float:0 10px 30px rgba(0,0,0,.5),0 0 0 1px var(--line);color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background-color:var(--paper);background-image:var(--bg-fade,none);background-attachment:fixed;color:var(--ink);font:15px/1.55 "Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+h1,h2{text-wrap:balance}
+p{text-wrap:pretty}
+
+/* shell */
+.app{display:grid;grid-template-columns:244px minmax(0,1fr);min-height:100vh}
+#side{position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto;display:flex;flex-direction:column;gap:22px;padding:20px 14px;background:var(--surface);box-shadow:1px 0 0 var(--line);z-index:20}
+.brand{display:flex;gap:10px;align-items:center;padding:0 6px}
+.brand b{display:block;font-size:15px;line-height:1.25}
+.logo{flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:var(--pri);color:var(--pri-ink);display:grid;place-items:center}
+.demo{font-size:11px;font-weight:700;color:var(--warn)}
+#nav{display:flex;flex-direction:column;gap:2px}
+#nav a{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:9px;color:var(--muted);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap;transition:background-color .15s,color .15s}
+#nav a:hover{background:var(--sunk);color:var(--ink)}
+#nav a.on{background:var(--pri-soft);color:var(--pri)}
+#nav svg{flex:0 0 18px}
+.count{margin-left:auto;min-width:22px;text-align:center;background:var(--pri);color:var(--pri-ink);border-radius:999px;padding:0 7px;font-size:12px;line-height:20px;font-variant-numeric:tabular-nums}
+.golive{margin:0 0 10px}
+.who{margin-top:auto;padding:0 6px}
+.who label{margin:0}
+main{padding:30px 34px 110px;max-width:1260px;width:100%}
+.app.bare{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+.app.bare main{margin:0 auto}
+.app.bare #side{position:sticky;top:env(safe-area-inset-top,0px);height:auto;flex-direction:row;align-items:center;padding:10px 20px}
+.app.kiosk #side{display:none}
+.livebar{display:flex;align-items:center;gap:12px;width:100%;flex-wrap:wrap}
+.livebar .grow{flex:1}
+.livebar select{width:auto}
+.pulse{width:10px;height:10px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 55%,transparent)}100%{box-shadow:0 0 0 10px transparent}}
+@media(max-width:899px){
+  .app{grid-template-columns:1fr}
+  #side{position:sticky;top:env(safe-area-inset-top,0px);height:auto;display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand who" "nav nav";gap:8px;padding:10px 12px 0}
+  .brand{grid-area:brand;padding:0}.who{grid-area:who;margin:0;padding:0}.who label{flex-direction:row;align-items:center;font-size:12px}.who select{width:auto;max-width:150px;padding:6px 8px}
+  #nav{grid-area:nav;flex-direction:row;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:0 8px 8px}
+  #nav a{padding:7px 10px}#nav a .count{margin-left:4px}
+  .golive{margin:0}
+  main{padding:18px 14px 110px}
+}
+
+/* type + basics */
+h1{font-size:28px;line-height:1.15;font-weight:750;letter-spacing:-.022em;margin:0}
+h2{font-size:16px;font-weight:700;margin:0 0 12px;letter-spacing:-.005em}
+.sub{color:var(--muted);margin:4px 0 0}
+.phead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.pact{display:flex;gap:8px;flex-wrap:wrap}
+.muted{color:var(--muted)}.sm{font-size:13px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border-radius:14px;box-shadow:var(--lift);padding:18px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:899px){.grid2{grid-template-columns:1fr}}
+label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px}
+input,select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:9px 11px;width:100%;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-soft)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+input[type=checkbox],input[type=radio]{width:18px;height:18px;accent-color:var(--pri);margin:0}
+textarea{resize:vertical}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.fgrid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:0 14px}
+.span2{grid-column:1/-1}
+@media(max-width:600px){.fgrid,.fgrid3{grid-template-columns:1fr}}
+fieldset{border:0;padding:0;margin:0 0 12px}
+legend{font-size:13px;font-weight:600;color:var(--muted);padding:0;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{flex-direction:row;align-items:center;gap:8px;background:var(--sunk);border-radius:999px;padding:7px 13px;margin:0;color:var(--ink);font-weight:500;font-size:14px;cursor:pointer;transition:background-color .15s}
+.chip:has(input:checked){background:var(--pri-soft);color:var(--pri)}
+.check{flex-direction:row;align-items:center;gap:10px;color:var(--ink);font-weight:500;font-size:14px}
+.btn{font:inherit;font-weight:600;font-size:14px;border:0;background:var(--sunk);color:var(--ink);border-radius:9px;padding:9px 14px;min-height:40px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:background-color .15s,transform .1s}
+.btn:hover{background:color-mix(in srgb,var(--sunk) 70%,var(--line))}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--pri);color:var(--pri-ink)}
+.btn.primary:hover{background:color-mix(in srgb,var(--pri) 88%,var(--ink))}
+.btn.sm{padding:6px 11px;font-size:13px;min-height:34px}
+.btn.lg{padding:12px 20px;font-size:15px;min-height:46px}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.btn.wa{background:#25d366;color:#05301a}
+.btn:disabled{opacity:.6;cursor:wait}
+.icon{border:0;background:transparent;color:var(--muted);border-radius:9px;width:40px;height:40px;flex:0 0 40px;cursor:pointer;font-size:20px;line-height:1}
+.icon:hover{background:var(--sunk);color:var(--bad)}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--sunk);color:var(--muted);white-space:nowrap}
+.badge.ok{background:var(--ok-soft);color:var(--ok)}.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.badge.bad{background:var(--bad-soft);color:var(--bad)}.badge.pri{background:var(--pri-soft);color:var(--pri)}
+.alerts{display:flex;gap:6px;flex-wrap:wrap}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;padding:0 10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--sunk)}
+td select{width:auto;padding:6px 8px}
+.row-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.row-item:last-child{border-bottom:0}
+.row-item.click{cursor:pointer}
+.row-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row-actions select,.row-actions input{width:auto}
+.tabs{display:inline-flex;gap:4px;padding:4px;background:var(--sunk);border-radius:12px;margin-bottom:16px;flex-wrap:wrap}
+.tab{font:inherit;font-weight:600;font-size:14px;border:0;background:transparent;color:var(--muted);border-radius:8px;padding:7px 14px;cursor:pointer;min-height:36px}
+.tab.on{background:var(--surface);color:var(--ink);box-shadow:var(--lift)}
+.empty{text-align:center;padding:36px 16px;color:var(--muted)}
+.empty p{margin:0 0 14px}
+.lbl{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px}
+
+/* dashboard */
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));background:var(--surface);border-radius:14px;box-shadow:var(--lift);margin-bottom:16px;overflow:hidden}
+.ledger>div{padding:16px 18px;box-shadow:-1px 0 0 var(--line)}
+.fig-l{font-size:13px;color:var(--muted);font-weight:600}
+.fig-v{font-size:28px;font-weight:750;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.25}
+.fig-s{font-size:12px;color:var(--muted)}
+.prog{width:96px;height:6px;border-radius:3px;background:var(--sunk);overflow:hidden;display:inline-block;vertical-align:middle;margin-right:8px}
+.prog i{display:block;height:100%;background:var(--pri);border-radius:3px}
+
+/* queue */
+.qlist{display:flex;flex-direction:column}
+.qrow{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.qrow:last-child{border-bottom:0}
+.tok{width:40px;height:40px;border-radius:50%;background:var(--sunk);display:grid;place-items:center;font-weight:750;font-variant-numeric:tabular-nums}
+.qrow.in .tok{background:var(--warn-soft);color:var(--warn)}
+.qmeta{font-size:13px;color:var(--muted)}
+.late{color:var(--warn);font-weight:600}
+@media(max-width:700px){.qrow{grid-template-columns:40px minmax(0,1fr)}.qrow>.qdoc,.qrow>.qact{grid-column:2}}
+
+/* live */
+.chair{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:18px;padding:24px 26px 24px 32px;border-radius:18px;background:var(--surface);box-shadow:var(--lift);margin-bottom:18px;overflow:hidden}
+.chair::before{content:"";position:absolute;inset:0 auto 0 0;width:7px;background:var(--ok)}
+.chair.busy::before{background:var(--warn)}
+.chair-k{font-size:13px;font-weight:600;color:var(--muted)}
+.chair-name{font-size:32px;font-weight:750;letter-spacing:-.025em;line-height:1.15;margin:2px 0 8px}
+@media(max-width:600px){.chair{grid-template-columns:1fr}.chair-name{font-size:26px}}
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.col{background:var(--sunk);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:150px}
+.col-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 6px 6px}
+.qcard{background:var(--surface);border-radius:8px;padding:12px;box-shadow:var(--lift)}
+.qcard select{width:auto;max-width:60%;padding:6px 8px;font-size:13px}
+.qcard.late{box-shadow:inset 3px 0 0 var(--warn),var(--lift)}
+.qcard-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.qcard-f{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+
+/* tooth chart */
+.chart-wrap{overflow-x:auto;margin:0 -4px;padding:4px}
+.chart{min-width:660px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.arch{display:flex;gap:12px;align-items:flex-end}
+.arch.down{align-items:flex-start}
+.half{display:flex;gap:1px}
+.mid{width:1px;align-self:stretch;background:var(--line)}
+.jaw{font-size:11px;color:var(--muted);font-weight:600;width:100%;display:flex;justify-content:space-between;padding:0 6px}
+.tooth{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;padding:5px 2px;border-radius:9px;color:var(--muted);font:700 11px/1 "Public Sans",sans-serif;font-variant-numeric:tabular-nums;transition:background-color .12s}
+button.tooth{cursor:pointer}
+button.tooth:hover{background:var(--sunk)}
+.arch.down .tooth{flex-direction:column-reverse}
+.tooth svg{display:block}
+.tooth .cr{fill:var(--enamel);stroke:var(--tline);stroke-width:1.2;transition:stroke .12s}
+.tooth .rt{fill:var(--root);stroke:var(--tline);stroke-width:1.2}
+button.tooth:hover .cr{stroke:var(--pri)}
+.tooth.sel{background:var(--pri-soft);color:var(--pri)}
+.tooth.sel .cr{stroke:var(--pri);stroke-width:2.2}
+.tooth.s-crown .cr{fill:var(--t-crown)}
+.tooth.s-missing svg{opacity:.4}
+.tooth.s-missing .cr,.tooth.s-missing .rt{fill:transparent;stroke-dasharray:3 3}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);justify-content:center;margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.marks{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:14px;padding-top:14px;box-shadow:0 -1px 0 var(--line)}
+.mk{font:inherit;font-size:13px;font-weight:600;border:0;background:var(--sunk);color:var(--ink);border-radius:999px;padding:6px 12px 6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;min-height:34px;transition:background-color .12s,transform .1s}
+.mk:active{transform:scale(.96)}
+.mk i{width:10px;height:10px;border-radius:3px}
+.mk:disabled{opacity:.45;cursor:not-allowed}
+
+/* consultation */
+.chead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.chead .alerts{margin-top:10px}
+.consult{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start}
+.cside{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto}
+@media(max-width:1099px){.consult{grid-template-columns:1fr}.cside{position:static;max-height:none}}
+.step{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--pri-soft);color:var(--pri);font-size:12px;font-weight:750;margin-right:10px;vertical-align:1px}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.ph h2{margin:0}
+.svc-row{display:flex;gap:8px;margin-bottom:8px}
+.svc-row select{flex:2;min-width:0}.svc-row input{flex:1.4;min-width:0}.svc-row .price{flex:0 0 110px}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.rxchip{font:inherit;font-size:13px;border:0;background:var(--sunk);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;text-align:left;min-height:34px}
+.rxchip:hover{background:var(--pri-soft);color:var(--pri)}
+.pay{display:grid;grid-template-columns:auto 1fr 1fr;gap:14px;align-items:end;background:var(--sunk);border-radius:12px;padding:14px;margin-top:6px}
+.pay label{margin:0}.pay b{font-size:24px;display:block;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+@media(max-width:600px){.pay{grid-template-columns:1fr}}
+.savebar{position:sticky;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--ink);color:var(--paper);padding:10px 10px 10px 20px;border-radius:16px;box-shadow:var(--float);z-index:5}
+.savebar b{display:block}
+.savebar span{font-size:13px;opacity:.75}
+.savebar .btn.primary{flex:0 0 auto}
+
+/* history */
+.case{padding:12px 0;border-bottom:1px solid var(--line)}
+.case:last-child{border-bottom:0}
+.case-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tl{list-style:none;margin:12px 0 0 5px;padding:0 0 0 16px;border-left:2px solid var(--line)}
+.tl li{position:relative;padding:0 0 14px 4px;font-size:14px}
+.tl li:last-child{padding-bottom:2px}
+.tl li::before{content:"";position:absolute;left:-23px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--surface);box-shadow:0 0 0 2px var(--pri)}
+.tl-h{display:flex;justify-content:space-between;gap:8px}
+.rx{font-size:13px;background:var(--pri-soft);padding:6px 10px;border-radius:8px;margin-top:4px;white-space:pre-line}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.thumb{border:0;padding:0;background:none;cursor:pointer;color:var(--muted);font:inherit;font-size:11px;text-align:left}
+.thumb img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:8px;outline:1px solid rgba(0,0,0,.1);outline-offset:-1px}
+.thumb span{display:block;margin-top:4px}
+
+/* checkout */
+.co{border-radius:12px;background:var(--sunk);padding:14px;margin-bottom:10px;display:flex;flex-direction:column;gap:12px}
+.co-block{background:var(--surface);border-radius:8px;padding:12px}
+.co-block .row-actions input,.co-block .row-actions select{width:auto}
+
+/* kiosk */
+.kiosk{max-width:620px;margin:0 auto;padding:12px 0 40px}
+.kiosk h1{font-size:34px}
+.ta{display:block;font-family:"Noto Sans Tamil",sans-serif;font-weight:400;color:var(--muted);font-size:.82em;line-height:1.5}
+.kbig{display:grid;gap:14px;margin-top:26px}
+.kbtn{font:inherit;text-align:left;padding:24px;border-radius:18px;border:0;background:var(--surface);box-shadow:var(--lift);font-size:22px;font-weight:700;cursor:pointer;color:var(--ink);transition:transform .1s,box-shadow .15s}
+.kbtn:hover{box-shadow:0 0 0 2px var(--pri)}
+.kbtn:active{transform:scale(.98)}
+.kiosk label{font-size:16px;color:var(--ink)}
+.kiosk input,.kiosk select{font-size:19px;padding:14px}
+.kiosk .chip{font-size:16px;padding:10px 15px}
+.kiosk label .ta,.kiosk legend .ta{font-size:15px;font-weight:400;margin-top:-2px}
+.kdone{text-align:center;padding:40px 0}
+.ktok{font-size:120px;font-weight:800;color:var(--pri);font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.04em;margin:8px 0}
+.kexit{display:block;margin:40px auto 0;font:inherit;font-size:13px;color:var(--muted);background:none;border:0;cursor:pointer;text-decoration:underline;min-height:40px}
+
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:12px;font-weight:600;font-size:14px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:50;max-width:90vw;box-shadow:var(--float)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.lb{position:fixed;inset:0;background:rgba(5,8,10,.86);display:grid;place-items:center;z-index:60;padding:20px;cursor:zoom-out}
+.lb img{max-width:92vw;max-height:80vh;border-radius:10px}
+.lb figcaption{color:#fff;text-align:center;margin-top:10px}
+/* palettes */
+:root[data-palette="midnight"]{
+  --paper:#030407;--surface:#0a0d13;--sunk:#10141c;--ink:#eef1f7;--muted:#8b93a5;--line:#1b2130;
+  --pri:#1558c9;--pri-ink:#ffffff;--pri-soft:#0e1d3b;--pri-fg:#7aa8ff;--pri-grad:linear-gradient(180deg,#2068e0,#1558c9);
+  --brass:#d4ff24;--brass-ink:#030407;
+  --side-bg:#05070b;--side-grad:linear-gradient(180deg,#080b12 0%,#030407 100%);--side-ink:#eef1f7;--side-muted:#7c8597;--side-hover:#0f141d;--side-active:#141b28;
+  --ok:#d4ff24;--ok-soft:#1b2309;--warn:#ffb547;--warn-soft:#2a1f0b;--bad:#ff6b5a;--bad-soft:#2c1210;
+  --enamel:#e8ecf2;--root:#aeb8c8;--tline:#475167;
+  --t-decay:#ffb547;--t-filled:#3d7be6;--t-rct:#a184ff;--t-crown:#d4ff24;--t-implant:#2bd4c0;--t-missing:#475167;
+  --lift:0 0 0 1px var(--line);--float:0 16px 40px rgba(0,0,0,.6),0 0 0 1px var(--line);
+  --bg-fade:radial-gradient(1100px 520px at 100% -8%,rgba(21,88,201,.24),transparent 60%),radial-gradient(700px 420px at -10% 110%,rgba(212,255,36,.05),transparent 60%);
+  color-scheme:dark}
+:root[data-palette="orchid"]{
+  --paper:#fbf3f9;--surface:#ffffff;--sunk:#f7e7f3;--ink:#2a0530;--muted:#71567a;--line:#efd7ea;
+  --pri:#400849;--pri-ink:#ffffff;--pri-soft:#f5dff1;--pri-fg:#400849;--pri-grad:linear-gradient(180deg,#580e64,#400849);
+  --brass:#ff5a0a;--brass-ink:#ffffff;
+  --side-bg:#400849;--side-grad:linear-gradient(180deg,#4d0b57 0%,#2b0532 100%);--side-ink:#fdf1fa;--side-muted:#e7b0de;--side-hover:#55105f;--side-active:#661870;
+  --ok:#1f7a4d;--ok-soft:#e3f3ea;--warn:#c2410c;--warn-soft:#ffeadc;--bad:#b4232c;--bad-soft:#fde8ea;
+  --enamel:#fffbfe;--root:#f1dcea;--tline:#b593b0;
+  --t-decay:#ff5a0a;--t-filled:#3a62c4;--t-rct:#8a2d99;--t-crown:#d49a1c;--t-implant:#1f8a70;--t-missing:#b593b0;
+  --lift:0 1px 2px rgba(64,8,73,.06),0 0 0 1px var(--line);--float:0 14px 36px rgba(64,8,73,.28);
+  --bg-fade:radial-gradient(1000px 520px at 105% -10%,rgba(231,176,222,.62),transparent 60%),radial-gradient(800px 500px at -10% 110%,rgba(255,90,10,.07),transparent 60%);
+  color-scheme:light}
+:root[data-palette="sage"]{
+  --paper:#f5ecdf;--surface:#fffcf7;--sunk:#efe1cc;--ink:#2b1715;--muted:#6c665c;--line:#e4d3bb;
+  --pri:#590907;--pri-ink:#fbefe4;--pri-soft:#f3ddd2;--pri-fg:#590907;--pri-grad:linear-gradient(180deg,#6e100d,#590907);
+  --brass:#e8d2b5;--brass-ink:#590907;
+  --side-bg:#590907;--side-grad:linear-gradient(180deg,#5f0b09 0%,#3a0504 100%);--side-ink:#f7ecdd;--side-muted:#c4c6ba;--side-hover:#6c1411;--side-active:#7c1d19;
+  --ok:#4f6b3a;--ok-soft:#e6ecdb;--warn:#a5600f;--warn-soft:#f6e6cc;--bad:#8f1d14;--bad-soft:#f6dfd9;
+  --enamel:#fffcf5;--root:#ead8bd;--tline:#a5a79b;
+  --t-decay:#c8761c;--t-filled:#4f6f8f;--t-rct:#7d1a16;--t-crown:#b8924f;--t-implant:#6b7d55;--t-missing:#a5a79b;
+  --lift:0 1px 2px rgba(89,9,7,.05),0 0 0 1px var(--line);--float:0 14px 36px rgba(60,5,4,.28);
+  --bg-fade:radial-gradient(900px 500px at 105% -10%,rgba(165,167,155,.35),transparent 60%),linear-gradient(180deg,#f7efe3 0%,#efe3d0 100%);
+  color-scheme:light}
+
+:root[data-palette="linen"]{
+  --paper:#f2ede3;--surface:#fbf8f2;--sunk:#ebe4d7;--ink:#141210;--muted:#6b645a;--line:#ddd4c4;
+  --pri:#141210;--pri-ink:#fbf8f2;--pri-soft:#e6dfd1;--pri-fg:#141210;--pri-grad:linear-gradient(180deg,#2b2723,#141210);
+  --brass:#f2501e;--brass-ink:#141210;
+  --side-bg:#ece5d8;--side-grad:linear-gradient(180deg,#efe9dd 0%,#e7dfd0 100%);--side-ink:#141210;--side-muted:#6b645a;--side-hover:#e1d8c7;--side-active:#141210;
+  --ok:#3e7b4f;--ok-soft:#e3eddf;--warn:#b4610b;--warn-soft:#f5e4cb;--bad:#c2261a;--bad-soft:#f7ddd6;
+  --enamel:#fffdf8;--root:#e9dec9;--tline:#9c9384;
+  --t-decay:#f2501e;--t-filled:#2f5e8c;--t-rct:#6e3f78;--t-crown:#c9a04a;--t-implant:#2e7a68;--t-missing:#a89f90;
+  --lift:0 1px 0 rgba(20,18,16,.03),0 0 0 1px var(--line);--float:0 18px 40px rgba(20,18,16,.22);
+  --bg-fade:radial-gradient(900px 480px at 102% -8%,rgba(242,80,30,.09),transparent 60%),radial-gradient(700px 420px at -8% 108%,rgba(201,160,74,.10),transparent 60%);
+  --font-display:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  color-scheme:light}
+/* premium shell: evergreen and brass */
+#side{background:var(--side-bg);box-shadow:none;color:var(--side-ink)}
+#side .muted,#side .sm{color:var(--side-muted)}
+.brand b{color:var(--side-ink);letter-spacing:-.01em}
+.logo{background:var(--brass);color:var(--side-bg)}
+.demo{color:var(--brass);font-weight:600;letter-spacing:.02em}
+#nav a{color:var(--side-muted)}
+#nav a:hover{background:var(--side-hover);color:var(--side-ink)}
+#nav a.on{background:var(--side-active);color:#fff;box-shadow:inset 3px 0 0 var(--brass)}
+.count{background:var(--brass);color:var(--side-bg);font-weight:700}
+#side .btn{background:var(--side-hover);color:var(--side-ink)}
+#side .btn:hover{background:var(--side-active)}
+#side .btn.golive{background:var(--brass);color:var(--side-bg)}
+#side .btn.golive:hover{background:color-mix(in srgb,var(--brass) 85%,#fff)}
+#side label{color:var(--side-muted)}
+#side select{background:var(--side-hover);color:var(--side-ink);border-color:transparent}
+#side select:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--brass) 40%,transparent);border-color:var(--brass)}
+#side select option{color:#14201c;background:#fff}
+.savebar{background:var(--side-bg);color:var(--side-ink)}
+.savebar .btn.primary{background:var(--brass);color:var(--side-bg)}
+.savebar .btn.primary:hover{background:color-mix(in srgb,var(--brass) 85%,#fff)}
+.step{background:var(--side-bg);color:var(--brass)}
+.chair::before{background:var(--pri)}
+.chair.busy::before{background:var(--brass)}
+.btn.primary{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 1px 2px rgba(15,35,30,.25)}
+.tooth.sel{background:var(--pri-soft)}
+/* palette wiring */
+#side{background:var(--side-grad,var(--side-bg))}
+.logo,.count,#side .btn.golive,.savebar .btn.primary{color:var(--brass-ink,var(--side-bg))}
+.btn.primary{background:var(--pri-grad,var(--pri))}
+.btn.primary:hover{background:var(--pri-grad,var(--pri));filter:brightness(1.12)}
+#side .btn.golive,.savebar .btn.primary{background:var(--brass)}
+#side .btn.golive:hover,.savebar .btn.primary:hover{background:var(--brass);filter:brightness(1.06)}
+.badge.pri,.chip:has(input:checked),.tooth.sel,.rxchip:hover,.ktok{color:var(--pri-fg,var(--pri))}
+.savebar{background:var(--side-grad,var(--side-bg))}
+.chair{background:linear-gradient(100deg,var(--surface) 50%,color-mix(in srgb,var(--pri-soft) 75%,var(--surface)))}
+.swatches{display:flex;gap:10px;margin:6px 0 16px}
+.sw{width:30px;height:30px;border-radius:50%;border:0;padding:0;cursor:pointer;background:conic-gradient(from 210deg,var(--c1) 0 50%,var(--c2) 0 80%,var(--c3) 0);box-shadow:0 0 0 2px var(--side-bg),0 0 0 3px rgba(255,255,255,.14);transition:box-shadow .15s,transform .1s}
+.sw:active{transform:scale(.94)}
+.sw.on{box-shadow:0 0 0 2px var(--side-bg),0 0 0 4px var(--brass)}
+.who .lbl{color:var(--side-muted)}
+@media(max-width:899px){.who .lbl,.swatches{display:none}}
+/* linen: black type on beige, serif display, vermilion highlights */
+[data-palette="linen"] body{font-family:"Geist","Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px}
+[data-palette="linen"] h1{font-family:var(--font-display);font-weight:400;font-size:42px;letter-spacing:-.015em;line-height:1.05}
+[data-palette="linen"] .chair-name{font-family:var(--font-display);font-weight:400;font-size:44px;letter-spacing:-.015em}
+[data-palette="linen"] .fig-v{font-family:var(--font-display);font-weight:400;font-size:38px;letter-spacing:-.01em;line-height:1.1}
+[data-palette="linen"] .ktok{font-family:var(--font-display);font-weight:400}
+[data-palette="linen"] .brand b{font-family:var(--font-display);font-weight:400;font-size:21px;letter-spacing:-.01em}
+[data-palette="linen"] h2{font-weight:600;letter-spacing:-.01em}
+[data-palette="linen"] #side{box-shadow:1px 0 0 var(--line)}
+[data-palette="linen"] #nav a.on{background:#141210;color:#fbf8f2;box-shadow:inset 3px 0 0 var(--brass)}
+[data-palette="linen"] #side select{background:var(--surface);border-color:var(--line)}
+[data-palette="linen"] .savebar{background:#141210;color:#fbf8f2}
+[data-palette="linen"] .step{background:#141210;color:var(--brass)}
+[data-palette="linen"] .sw{box-shadow:0 0 0 2px var(--side-bg),0 0 0 3px rgba(20,18,16,.15)}
+[data-palette="linen"] .sw.on{box-shadow:0 0 0 2px var(--side-bg),0 0 0 4px var(--brass)}
+[data-palette="linen"] .chair.busy::before{background:var(--brass)}
+[data-palette="linen"] .chair::before{background:#141210}
+[data-palette="linen"] .panel,[data-palette="linen"] .ledger{border-radius:16px}
+@media(max-width:600px){[data-palette="linen"] h1{font-size:34px}[data-palette="linen"] .chair-name{font-size:34px}}
+@media(max-width:600px){.livebar>.sm{display:none}.livebar .btn{min-height:36px;padding:6px 10px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.pulse{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="side"></div>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="lb" id="lb" hidden data-act="lbClose"><figure><img id="lbImg" alt=""><figcaption id="lbCap"></figcaption></figure></div>
+
+<script>
+const KEY='dentalClinicDemo.v2';
+const $=s=>document.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const today=()=>new Date().toLocaleDateString('en-CA');
+const addDays=(d,n)=>{const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+n);return x.toLocaleDateString('en-CA')};
+const fmtD=d=>d?new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'–';
+const inr=n=>(n<0?'−':'')+'₹'+Math.abs(Number(n||0)).toLocaleString('en-IN');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nowT=()=>new Date().toTimeString().slice(0,5);
+const sum=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0);
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
+const minsAgo=t=>{if(!t)return 0;const[h,m]=t.split(':').map(Number),n=new Date();return Math.max(0,n.getHours()*60+n.getMinutes()-h*60-m)};
+const waitTxt=t=>{const w=minsAgo(t);return w<1?'just arrived':w<60?`waiting ${w} min`:`waiting ${Math.floor(w/60)} h ${w%60} min`};
+const MED=[['Diabetes','சர்க்கரை நோய்'],['BP','இரத்த அழுத்தம்'],['Heart condition','இதய நோய்'],['Allergies','ஒவ்வாமை'],['Pregnant','கர்ப்பம்'],['Blood thinners','இரத்தம் உறையாமை மருந்து'],['Asthma','ஆஸ்துமா']];
+const MARKS={decay:'Decay',filled:'Filled',rct:'Root canal',crown:'Crown',implant:'Implant',missing:'Missing'};
+const RX=['Amoxicillin 500mg, three times a day, 5 days','Paracetamol 650mg when needed for pain','Ibuprofen 400mg, three times a day, 3 days','Metronidazole 400mg, three times a day, 5 days','Chlorhexidine mouthwash, twice a day, 7 days','Sensitivity toothpaste, twice a day'];
+const PALETTES=[['linen','Linen','#F2EDE3','#141210','#F2501E'],['midnight','Midnight','#030407','#1558C9','#D4FF24'],['orchid','Orchid','#E7B0DE','#400849','#FF5A0A'],['sage','Sage','#A5A79B','#E8D2B5','#590907'],['evergreen','Evergreen','#0f231e','#1d4a3f','#ad874b']];
+const PERMS=[['contacts','Phone numbers'],['money','Prices and payments'],['patients','All patient records'],['full','Full owner access']];
+const EXP_CATS=['Equipment','Consumables','Rent','Salary','Utilities','Lab','Maintenance','Other'];
+const SLOTS=(()=>{const a=[];for(let h=9;h<21;h++)for(const m of ['00','30'])a.push(String(h).padStart(2,'0')+':'+m);return a})();
+const LABELS={dashboard:'Dashboard',checkin:'Check-in',appointments:'Appointments',queue:'Queue',consult:'Consultation',followups:'Follow-ups',patients:'Patients',admin:'Admin'};
+const ic=d=>`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+const TOOTHP='M7 3c-2.5 0-4 2-4 4.5 0 3 1.5 4.5 2 7.5.5 3 1 6 2.5 6s1.8-3 2.5-5c.5-1.3 1.5-1.3 2 0 .7 2 1 5 2.5 5s2-3 2.5-6c.5-3 2-4.5 2-7.5C21 5 19.5 3 17 3c-2 0-3 1-5 1S9 3 7 3z';
+const ICON={dashboard:ic('M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z'),checkin:ic('M15 19c0-2.8-2.7-5-6-5s-6 2.2-6 5M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19 8v6M16 11h6'),appointments:ic('M4 6h16v14H4zM4 10h16M8 3v4M16 3v4'),queue:ic('M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01'),consult:ic(TOOTHP),followups:ic('M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0'),patients:ic('M16 19c0-2.8-2.7-5-6-5s-6 2.2-6 5M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM17 4.5a3 3 0 0 1 0 6M21 19c0-2.2-1.4-4-3.5-4.7'),admin:ic('M4 7h9M17 7h3M4 17h3M11 17h9M15 5v4M9 15v4'),live:ic('M3 12h4l3-8 4 16 3-8h4'),tablet:ic('M7 3h10v18H7zM11 18h2')};
+
+function xraySvg(){const s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120"><defs><radialGradient id="g" cx=".5" cy=".55" r=".75"><stop offset="0" stop-color="#40464b"/><stop offset="1" stop-color="#090b0d"/></radialGradient></defs><rect width="160" height="120" fill="url(#g)"/><g fill="#d4d9dc" opacity=".82"><path d="M56 22c-9 0-14 7-12 17l3 22c2 14 5 38 11 38s6-18 7-28c1-5 5-5 6 0 1 10 2 28 8 28s9-24 11-38l3-22c2-10-3-17-12-17-5 0-8 2-12 2s-8-2-13-2z"/></g><g fill="#d4d9dc" opacity=".45"><path d="M16 26c-6 0-9 5-8 12l3 22c1 10 3 30 7 30s5-16 6-24l3-28c1-7-3-12-11-12z"/><path d="M126 26c-6 0-9 5-8 12l3 22c1 10 3 30 7 30s5-16 6-24l3-28c1-7-3-12-11-12z"/></g><path d="M62 52 Q63 74 60 96 M78 52 Q78 74 81 96" stroke="#fff" stroke-width="2.4" fill="none"/><text x="6" y="114" font-family="sans-serif" font-size="8" fill="#8a949b">IOPA 36</text></svg>`;return'data:image/svg+xml;utf8,'+encodeURIComponent(s)}
+
+function seed(){
+  const t=today(),d=n=>addDays(t,n);
+  const S=(name,price,marks=null)=>({id:uid(),name,price,active:true,marks});
+  const services=[S('Consultation',300),S('X-ray (IOPA)',250),S('Scaling & polishing',1500),S('Filling (composite)',1200,'filled'),S('Root canal treatment',6000,'rct'),S('Extraction',800,'missing'),S('Crown (PFM)',7000,'crown'),S('Implant',25000,'implant'),S('Braces consultation',500)];
+  const sv=n=>services.find(s=>s.name===n);
+  const staff=[{id:'d1',name:'Dr. Senthil',role:'owner'},{id:'d2',name:'Dr. Priya',role:'junior',perms:{}},{id:'d3',name:'Dr. Arun',role:'junior',perms:{}}];
+  const pt=(id,name,phone,age,gender,area,med=[])=>({id,name,phone,age,gender,area,med,medNotes:'',created:d(-30)});
+  const patients=[pt('p1','Ramesh Kumar','9840012345',42,'Male','Tambaram West',['Diabetes']),pt('p2','Lakshmi S','9884023456',35,'Female','Chromepet'),pt('p3','Mohammed Irfan','9789034567',28,'Male','Selaiyur'),pt('p4','Divya R','9962045678',31,'Female','East Tambaram',['Allergies']),pt('p5','Ganesh M','9444056789',56,'Male','Pallavaram',['BP'])];
+  const cases=[{id:'c1',patientId:'p1',title:'Root canal and crown – tooth 36',status:'open',doctorId:'d1',opened:d(-14),plan:{sittings:3,estimate:13000}},{id:'c2',patientId:'p2',title:'Scaling and cleaning',status:'closed',doctorId:'d2',opened:d(-10),plan:{sittings:1,estimate:1500}},{id:'c3',patientId:'p4',title:'Filling – tooth 14',status:'open',doctorId:'d1',opened:d(-2),plan:{sittings:2,estimate:1200}},{id:'c4',patientId:'p5',title:'Extraction – tooth 48',status:'closed',doctorId:'d3',opened:d(-1),plan:{sittings:1,estimate:800}}];
+  const V=(id,patientId,caseId,date,doctorId,svc,teeth,notes,rx,paid,payMode,nextVisit,nextReason)=>{const s=sv(svc);return{id,patientId,caseId,date,doctorId,teeth,services:[{name:s.name,price:s.price}],notes,rx,attachments:[],total:s.price,paid,payMode,nextVisit,nextReason,fu:nextVisit?'pending':null}};
+  const visits=[
+    V('v1','p1','c1',d(-14),'d1','Root canal treatment',['36'],'RCT sitting 1: access opening, canals located, temporary filling placed.','Amoxicillin 500mg, three times a day, 5 days\nParacetamol 650mg when needed for pain',3000,'UPI',t,'RCT sitting 2'),
+    V('v2','p2','c2',d(-10),'d2','Scaling & polishing',[],'Full mouth scaling done. Advised soft brush.','Chlorhexidine mouthwash, twice a day, 7 days',1500,'Cash',d(-3),'Review after scaling'),
+    V('v3','p4','c3',d(-2),'d1','Filling (composite)',['14'],'Deep caries on 14, composite restoration done. Decay noted on 24.','',1200,'Card',d(5),'Filling on 24'),
+    V('v4','p5','c4',d(-1),'d3','Extraction',['48'],'Impacted 48 removed, sutures placed.','Ibuprofen 400mg, three times a day, 3 days',0,'Pending',d(6),'Suture removal')];
+  visits[0].attachments=[{kind:'X-ray',name:'IOPA 36',type:'image/svg+xml',data:xraySvg()}];
+  visits[3].collect='pending';
+  const charts={p1:{'36':'rct','46':'filled','18':'missing'},p3:{'37':'decay'},p4:{'14':'filled','24':'decay'},p5:{'48':'missing','38':'missing'}};
+  const queue=[{id:'q1',date:t,token:1,patientId:'p3',doctorId:'d1',source:'walk-in',time:'10:05',status:'waiting'},{id:'q2',date:t,token:2,patientId:'p2',doctorId:'d1',source:'walk-in',time:'10:20',status:'waiting'}];
+  const appointments=[{id:'a1',patientId:'p1',date:t,time:'11:30',doctorId:'d1',reason:'RCT sitting 2',status:'booked'},{id:'a2',patientId:'p4',date:d(5),time:'17:00',doctorId:'d1',reason:'Filling on 24',status:'booked'}];
+  const expenses=[{id:uid(),date:d(-6),category:'Equipment',item:'LED curing light',amount:8500,vendor:'Dental Mart, T. Nagar'},{id:uid(),date:d(-3),category:'Consumables',item:'Composite kit and gloves',amount:4200,vendor:'Sri Dental Supplies'}];
+  return{clinic:{name:'Smile Dental Care',phone:'044 2226 0000',template:'Hello {name}, this is a reminder from {clinic} for your dental follow-up ({reason}) due on {date}. Please call {phone} to confirm your slot. Thank you.'},services,staff,patients,cases,visits,queue,appointments,expenses,charts};
+}
+function load(){try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s)}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast('Storage is full. Large attachments were not kept.')}}
+const store=(k,v)=>{try{localStorage.setItem(KEY+'.'+k,v)}catch(e){}};
+const read=(k,d)=>{try{return localStorage.getItem(KEY+'.'+k)??d}catch(e){return d}};
+
+let db=load();
+let ui={role:read('role','d1'),live:read('live','1')!=='0',kiosk:read('kiosk','0')==='1',k:{step:'start'},view:'',activeQ:null,caseSel:null,patient:null,search:'',psearch:'',fuTab:'today',adminTab:'services',apptDate:today(),apptPatient:null,apptReason:'',expMonth:today().slice(0,7),teeth:new Set(),draft:{},svcRows:[]};
+
+const P=id=>db.patients.find(p=>p.id===id);
+const D=id=>db.staff.find(s=>s.id===id);
+const owner=()=>db.staff.find(s=>s.role==='owner');
+const roleType=()=>{if(ui.role==='reception')return'reception';const d=D(ui.role);if(!d)return'reception';return d.role==='owner'||d.perms?.full?'owner':'junior'};
+const can=k=>{const r=roleType();if(r==='owner')return true;if(r==='reception')return k!=='admin';return!!D(ui.role)?.perms?.[k]};
+const me=()=>ui.role==='reception'?null:ui.role;
+const isLive=()=>roleType()==='owner'&&ui.live&&!ui.kiosk;
+const isKiosk=()=>ui.kiosk&&roleType()!=='junior';
+const blankRow=()=>({serviceId:'',name:'',price:''});
+const ph=p=>can('contacts')?esc(p.phone):'';
+const visitsOf=c=>db.visits.filter(v=>v.caseId===c.id);
+function navFor(){const r=roleType();return r==='owner'?['dashboard','checkin','appointments','queue','consult','followups','patients','admin']:r==='junior'?['queue','consult',...(can('patients')?['patients']:[])]:['checkin','appointments','queue','followups','patients']}
+function openFU(){return db.visits.filter(v=>v.nextVisit&&v.fu&&v.fu!=='done')}
+function dueFU(){const t=today();return openFU().filter(v=>v.nextVisit<=t&&v.fu!=='booked')}
+function checkoutList(){return db.visits.filter(v=>v.collect==='pending'||v.book==='pending').sort((a,b)=>a.date.localeCompare(b.date))}
+function docSelect(id,sel,name){const s=sel||owner().id;return`<select ${id?`id="${id}"`:''} ${name?`name="${name}"`:''} aria-label="Doctor">${db.staff.map(d=>`<option value="${d.id}" ${d.id===s?'selected':''}>${esc(d.name)}</option>`).join('')}</select>`}
+function alerts(p){const a=(p.med||[]).map(m=>`<span class="badge bad">${esc(m)}</span>`);if(p.medNotes)a.push(`<span class="badge warn">${esc(p.medNotes)}</span>`);return a.length?`<div class="alerts">${a.join('')}</div>`:''}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2800)}
+function go(v){if(location.hash==='#'+v)render();else location.hash=v}
+const head=(title,sub='',act='')=>`<div class="phead"><div><h1>${title}</h1>${sub?`<p class="sub">${sub}</p>`:''}</div>${act?`<div class="pact">${act}</div>`:''}</div>`;
+const fig=(l,v,s='')=>`<div><div class="fig-l">${l}</div><div class="fig-v">${v}</div>${s?`<div class="fig-s">${s}</div>`:''}</div>`;
+
+function addToQueue(pid,doctorId,source){
+  const t=today();doctorId=doctorId||owner().id;
+  if(db.queue.some(x=>x.date===t&&x.patientId===pid&&x.status!=='done')){toast(`${P(pid).name} is already in today’s queue`);return false}
+  const token=Math.max(0,...db.queue.filter(x=>x.date===t).map(x=>x.token))+1;
+  db.queue.push({id:uid(),date:t,token,patientId:pid,doctorId,source,time:nowT(),status:'waiting'});
+  save();toast(`Token ${token}: ${P(pid).name} added to ${D(doctorId).name}’s queue`);return token;
+}
+
+/* ---------- tooth chart ---------- */
+function toothSVG(n,st){
+  const k=+String(n)[1],up=+String(n)[0]<=2;
+  const type=k>=6?'m':k>=4?'p':k===3?'c':'i',W={m:42,p:32,c:30,i:28}[type],H=94,c=W/2;
+  const cr=`M3,52 C3,48 6,46 10,46 H${W-10} C${W-6},46 ${W-3},48 ${W-3},52 V72 C${W-3},85 ${W-10},91 ${c},91 C10,91 3,85 3,72 Z`;
+  const roots={i:`M${c-6},48 L${c-3},10 Q${c},4 ${c+3},10 L${c+6},48 Z`,c:`M${c-7},48 L${c-3},4 Q${c},0 ${c+3},4 L${c+7},48 Z`,p:`M${c-9},48 L${c-6},13 Q${c-3},7 ${c},15 Q${c+3},7 ${c+6},13 L${c+9},48 Z`,m:`M5,48 L8,14 Q11,8 14,14 L${c},34 L${W-14},14 Q${W-11},8 ${W-8},14 L${W-5},48 Z`};
+  let root=`<path class="rt" d="${roots[type]}"/>`,extra='';
+  if(st==='implant'){root=`<rect x="${c-6}" y="10" width="12" height="38" rx="3" fill="var(--t-implant)" opacity=".9"/>`+[16,23,30,37].map(y=>`<line x1="${c-8}" x2="${c+8}" y1="${y}" y2="${y+3}" stroke="var(--t-implant)" stroke-width="2"/>`).join('')}
+  if(st==='rct')extra=type==='m'?`<path d="M11,18 L${c-3},50 M${W-11},18 L${c+3},50" stroke="var(--t-rct)" stroke-width="3" stroke-linecap="round"/>`:`<path d="M${c},10 L${c},52" stroke="var(--t-rct)" stroke-width="3" stroke-linecap="round"/>`;
+  if(st==='decay')extra=`<ellipse cx="${c+2}" cy="70" rx="${W/6}" ry="6" fill="var(--t-decay)"/>`;
+  if(st==='filled')extra=`<rect x="${c-W/4}" y="62" width="${W/2}" height="15" rx="5" fill="var(--t-filled)"/>`;
+  if(st==='missing')extra=`<path d="M${c-6},62 L${c+6},76 M${c+6},62 L${c-6},76" stroke="var(--t-missing)" stroke-width="2" stroke-linecap="round"/>`;
+  const g=`${root}<path class="cr" d="${cr}"/>${extra}`;
+  return`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${up?g:`<g transform="translate(0,${H}) scale(1,-1)">${g}</g>`}</svg>`;
+}
+function chartHTML(pid,edit){
+  const ch={...(db.charts[pid]||{})};if(edit)Object.entries(ui.draft).forEach(([t,s])=>{if(s)ch[t]=s;else delete ch[t]});
+  const tooth=n=>{const st=ch[n]||'',sel=edit&&ui.teeth.has(String(n)),lbl=`Tooth ${n}${st?', '+MARKS[st]:''}`;
+    return edit?`<button type="button" class="tooth s-${st||'ok'} ${sel?'sel':''}" data-act="tooth" data-t="${n}" aria-pressed="${sel}" aria-label="${lbl}" title="${lbl}">${toothSVG(n,st)}<span>${n}</span></button>`:`<span class="tooth s-${st||'ok'}" title="${lbl}">${toothSVG(n,st)}<span>${n}</span></span>`};
+  const row=(a,b)=>`<div class="half">${a.map(tooth).join('')}</div><div class="mid"></div><div class="half">${b.map(tooth).join('')}</div>`;
+  return`<div class="chart-wrap"><div class="chart"><div class="jaw"><span>Patient’s right</span><span>Upper jaw</span><span>Patient’s left</span></div>
+  <div class="arch up">${row([18,17,16,15,14,13,12,11],[21,22,23,24,25,26,27,28])}</div>
+  <div class="arch down">${row([48,47,46,45,44,43,42,41],[31,32,33,34,35,36,37,38])}</div>
+  <div class="jaw"><span></span><span>Lower jaw</span><span></span></div></div></div>
+  <div class="legend">${Object.entries(MARKS).map(([k,l])=>`<span><i style="background:var(--t-${k})"></i>${l}</span>`).join('')}</div>`;
+}
+
+/* ---------- views ---------- */
+function prog(c){const done=visitsOf(c).length,s=c.plan?.sittings||0;if(!s)return`<span class="sm muted">${done} visit${done===1?'':'s'}</span>`;return`<span><span class="prog" title="${done} of ${s} sittings"><i style="width:${Math.min(100,Math.round(done/s*100))}%"></i></span><span class="sm muted">Sitting ${Math.min(done,s)} of ${s}</span></span>`}
+function vDashboard(){
+  const t=today(),m=t.slice(0,7),q=db.queue.filter(x=>x.date===t),vt=db.visits.filter(v=>v.date===t),vm=db.visits.filter(v=>v.date.slice(0,7)===m);
+  const colOn=(pre,doc)=>sum(db.visits.filter(v=>!doc||v.doctorId===doc),v=>{const later=sum(v.payments||[],x=>x.amount);return(v.date.startsWith(pre)?v.paid-later:0)+sum((v.payments||[]).filter(x=>x.date.startsWith(pre)),x=>x.amount)});
+  const exm=sum(db.expenses.filter(e=>e.date.slice(0,7)===m),e=>e.amount),colm=colOn(m);
+  const plans=db.cases.filter(c=>c.status==='open');
+  const recent=[...db.visits].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+  return head(fmtD(t),'The clinic at a glance')+
+  `<div class="ledger">${fig('Patients today',q.length,`${q.filter(x=>x.status!=='done').length} waiting or in a chair`)}${fig('Collected today',inr(colOn(t)))}${fig('Collected this month',inr(colm),`${vm.length} visits`)}${fig('Spent this month',inr(exm),`Net ${inr(colm-exm)}`)}${fig('Follow-ups to chase',dueFU().length,'due today or overdue')}</div>
+  <div class="grid2">
+   <section class="panel"><h2>Doctors today</h2><div class="tw"><table><thead><tr><th>Doctor</th><th class="num">Waiting</th><th class="num">Seen</th><th class="num">Collected</th></tr></thead><tbody>
+   ${db.staff.map(d=>`<tr><td>${esc(d.name)}${d.role==='owner'?' <span class="badge pri">Owner</span>':''}</td><td class="num">${q.filter(x=>x.doctorId===d.id&&x.status!=='done').length}</td><td class="num">${vt.filter(v=>v.doctorId===d.id).length}</td><td class="num">${inr(colOn(t,d.id))}</td></tr>`).join('')}
+   </tbody></table></div></section>
+   <section class="panel"><h2>Ongoing treatment plans</h2>${plans.length?plans.map(c=>`<div class="row-item click" data-act="ptOpenNav" data-id="${c.patientId}"><div><b>${esc(P(c.patientId)?.name)}</b><div class="sm muted">${esc(c.title)}</div></div>${prog(c)}</div>`).join(''):'<div class="empty"><p>No treatments in progress.</p></div>'}</section>
+  </div>
+  <section class="panel"><h2>Recent visits</h2><div class="tw"><table><thead><tr><th>Date</th><th>Patient</th><th>Treatment</th><th>Doctor</th><th class="num">Billed</th></tr></thead><tbody>
+   ${recent.map(v=>`<tr class="click" data-act="ptOpenNav" data-id="${v.patientId}"><td>${fmtD(v.date)}</td><td>${esc(P(v.patientId)?.name)}</td><td>${esc(v.services.map(s=>s.name).join(', '))}</td><td>${esc(D(v.doctorId)?.name)}</td><td class="num">${inr(v.total)}</td></tr>`).join('')}
+  </tbody></table></div></section>`;
+}
+
+function collectHTML(){
+  const vs=checkoutList();if(!vs.length)return'';
+  return`<section class="panel"><div class="ph"><h2>Checkout desk</h2><span class="sm muted">Handed over by the doctors for payment or the next appointment</span></div>${vs.map(v=>{const p=P(v.patientId);
+   const pay=v.collect==='pending'?`<div class="co-block"><div class="lbl">Payment due: ${inr(v.total-v.paid)}</div><div class="row-actions"><input type="number" min="0" id="amt-${v.id}" value="${v.total-v.paid}" style="width:120px" aria-label="Amount received"><select id="mode-${v.id}" aria-label="Paid by"><option>Cash</option><option>UPI</option><option>Card</option></select><button class="btn primary sm" data-act="collect" data-id="${v.id}">Mark paid</button></div></div>`:`<div><span class="badge ok">Paid ${inr(v.paid)} by ${esc(v.payMode)}</span></div>`;
+   const sug=v.nextVisit&&v.nextVisit>=today()?v.nextVisit:addDays(today(),7);
+   const book=v.book==='pending'?`<div class="co-block"><div class="lbl">Next appointment${v.nextVisit?`: doctor suggests ${fmtD(v.nextVisit)}`:''}</div><div class="row-actions"><input id="br-${v.id}" value="${esc(v.nextReason||'')}" placeholder="Reason" style="width:190px" aria-label="Reason"><input type="date" id="bd-${v.id}" value="${sug}" min="${today()}" aria-label="Date"><select id="bt-${v.id}" aria-label="Time">${SLOTS.map(s=>`<option>${s}</option>`).join('')}</select>${docSelect('bdoc-'+v.id,v.doctorId)}<button class="btn primary sm" data-act="bookNext" data-id="${v.id}">Book</button><button class="btn ghost sm" data-act="noNext" data-id="${v.id}">Not needed</button></div></div>`:(v.nextVisit?`<div><span class="badge ok">Next visit ${fmtD(v.nextVisit)}</span></div>`:'');
+   return`<div class="co"><div><b>${esc(p.name)}</b> <span class="sm muted">${esc(p.phone)}</span><div class="sm muted">${fmtD(v.date)}: ${esc(v.services.map(s=>s.name).join(', '))}, seen by ${esc(D(v.doctorId)?.name)}</div></div>${pay}${book}</div>`}).join('')}</section>`;
+}
+function resultsHTML(){
+  const s=ui.search.trim().toLowerCase();
+  if(s.length<2)return'<p class="sm muted">Type at least 2 characters of a name or mobile number.</p>';
+  const r=db.patients.filter(p=>p.phone.includes(s)||p.name.toLowerCase().includes(s)).slice(0,8);
+  if(!r.length)return'<p class="sm muted">No match. Register them as a new patient below.</p>';
+  return r.map(p=>`<div class="row-item"><div><b>${esc(p.name)}</b><div class="sm muted">${esc(p.phone)}${p.area?', '+esc(p.area):''}</div>${alerts(p)}</div><div class="row-actions">${docSelect('qdoc-'+p.id)}<button class="btn primary sm" data-act="pick" data-id="${p.id}">Add to queue</button></div></div>`).join('');
+}
+function vCheckin(){
+  const ap=db.appointments.filter(a=>a.date===today()&&a.status==='booked').sort((a,b)=>a.time.localeCompare(b.time));
+  return head('Check-in','Register arrivals, check in bookings and settle patients on the way out','<button class="btn" data-act="kioskOn">'+ICON.tablet+'Patient tablet</button>')+collectHTML()+`
+  <div class="grid2">
+   <section class="panel"><h2>Returning patient</h2><input id="search" placeholder="Search by mobile number or name" value="${esc(ui.search)}" autocomplete="off"><div id="results" style="margin-top:6px">${resultsHTML()}</div></section>
+   <section class="panel"><h2>Today’s appointments</h2>${ap.length?ap.map(a=>{const p=P(a.patientId),late=a.time<nowT();return`<div class="row-item"><div><b>${a.time}</b>&ensp;${esc(p.name)}${late?' <span class="badge warn">Late</span>':''}<div class="sm muted">${esc(a.reason||'Appointment')} with ${esc(D(a.doctorId)?.name)}</div></div><button class="btn primary sm" data-act="checkinAppt" data-id="${a.id}">Check in</button></div>`}).join(''):'<div class="empty"><p>No appointments left to check in today.</p></div>'}</section>
+  </div>
+  <section class="panel"><h2>New patient</h2>
+   <form data-form="newPatient" class="fgrid">
+    <label>Full name<input name="name" required autocomplete="off"></label>
+    <label>Mobile number<input name="phone" required pattern="[0-9]{10}" inputmode="numeric" maxlength="10" placeholder="10 digits"></label>
+    <label>Age<input name="age" type="number" min="0" max="120"></label>
+    <label>Gender<select name="gender"><option>Male</option><option>Female</option><option>Other</option></select></label>
+    <label class="span2">Area or address<input name="area"></label>
+    <fieldset class="span2"><legend>Medical history</legend><div class="chips">${MED.map(([m])=>`<label class="chip"><input type="checkbox" name="med" value="${m}">${m}</label>`).join('')}</div><input name="medNotes" placeholder="Anything else, e.g. current medicines"></fieldset>
+    <label>Send to ${docSelect('','',"doctorId")}</label>
+    <div class="span2"><button class="btn primary lg">Register and add to queue</button></div>
+   </form>
+  </section>`;
+}
+
+function vAppointments(){
+  const list=db.appointments.filter(a=>a.date===ui.apptDate).sort((a,b)=>a.time.localeCompare(b.time));
+  const pre=ui.apptPatient,pts=[...db.patients].sort((a,b)=>a.name.localeCompare(b.name));
+  const st={booked:['pri','Booked'],'checked-in':['warn','Arrived'],visited:['ok','Seen'],cancelled:['','Cancelled']};
+  return head('Appointments','Book phone calls into a slot. Double bookings are blocked.')+`
+  <div class="grid2">
+   <section class="panel"><h2>Book a slot</h2>
+    <form data-form="appt">
+     <label>Patient<select name="patientId" data-change="apPt"><option value="new">New patient</option>${pts.map(p=>`<option value="${p.id}" ${p.id===pre?'selected':''}>${esc(p.name)} (${esc(p.phone)})</option>`).join('')}</select></label>
+     <div id="apNew" class="fgrid" ${pre?'hidden':''}><label>Name<input name="newName"></label><label>Mobile<input name="newPhone" inputmode="numeric" maxlength="10"></label></div>
+     <div class="fgrid">
+      <label>Date<input type="date" name="date" value="${ui.apptDate<today()?today():ui.apptDate}" min="${today()}" required></label>
+      <label>Time<select name="time">${SLOTS.map(s=>`<option>${s}</option>`).join('')}</select></label>
+      <label>Doctor ${docSelect('','',"doctorId")}</label>
+      <label>Reason<input name="reason" value="${esc(ui.apptReason)}" placeholder="e.g. RCT sitting 2"></label>
+     </div>
+     <button class="btn primary">Book appointment</button>
+    </form>
+   </section>
+   <section class="panel"><div class="ph"><h2>${ui.apptDate===today()?'Today':fmtD(ui.apptDate)}</h2><input type="date" value="${ui.apptDate}" data-change="apDate" style="width:auto" aria-label="Show bookings for date"></div>
+    ${list.length?list.map(a=>{const p=P(a.patientId),[c,l]=st[a.status]||['',a.status];return`<div class="row-item"><div><b>${a.time}</b>&ensp;${esc(p.name)} <span class="badge ${c}">${l}</span><div class="sm muted">${esc(a.reason||'Appointment')} with ${esc(D(a.doctorId)?.name)}</div></div>${a.status==='booked'?`<div class="row-actions">${a.date===today()?`<button class="btn sm" data-act="checkinAppt" data-id="${a.id}">Check in</button>`:''}<button class="btn ghost sm" data-act="cancelAppt" data-id="${a.id}">Cancel</button></div>`:''}</div>`}).join(''):'<div class="empty"><p>No bookings on this date.</p></div>'}
+   </section>
+  </div>`;
+}
+
+function vQueue(){
+  const t=today(),rt=roleType(),m=me();
+  let q=db.queue.filter(x=>x.date===t);if(rt==='junior')q=q.filter(x=>x.doctorId===m);
+  const active=q.filter(x=>x.status!=='done').sort((a,b)=>(a.status==='in'?-1:0)-(b.status==='in'?-1:0)||a.token-b.token),done=q.filter(x=>x.status==='done');
+  const row=x=>{const p=P(x.patientId),w=minsAgo(x.time);
+    const doc=rt==='owner'&&x.status==='waiting'?`<select data-change="assign" data-id="${x.id}" aria-label="Assign doctor">${db.staff.map(d=>`<option value="${d.id}" ${d.id===x.doctorId?'selected':''}>${esc(d.name)}</option>`).join('')}</select>`:`<span class="sm muted">${esc(D(x.doctorId)?.name)}</span>`;
+    const act=x.status==='waiting'&&x.doctorId===m?`<button class="btn primary sm" data-act="call" data-id="${x.id}">Call in</button>`:x.status==='in'&&x.doctorId===m?`<button class="btn sm" data-act="openConsult" data-id="${x.id}">Continue</button>`:x.status==='in'?'<span class="badge warn">In chair</span>':'';
+    return`<div class="qrow ${x.status==='in'?'in':''}"><div class="tok">${x.token}</div><div><b>${esc(p.name)}</b> ${ph(p)?`<span class="sm muted">${ph(p)}</span>`:''}<div class="qmeta">${x.status==='in'?'In the chair':`<span class="${w>30?'late':''}">${cap(waitTxt(x.time))}</span>`}, ${x.source}, arrived ${x.time}</div>${alerts(p)}</div><div class="qdoc">${doc}</div><div class="qact">${act}</div></div>`};
+  return head('Today’s queue',rt==='junior'?'Patients assigned to you':rt==='owner'?'Change the doctor on a waiting patient to move them to a junior’s queue':'Everyone checked in today')+`
+  <section class="panel">${active.length?`<div class="qlist">${active.map(row).join('')}</div>`:`<div class="empty"><p>No one is waiting.</p>${rt!=='junior'?'<button class="btn primary" data-act="go" data-v="checkin">Check in a patient</button>':''}</div>`}</section>
+  ${done.length?`<section class="panel"><h2>Seen today (${done.length})</h2>${done.map(x=>`<div class="row-item"><span>${x.token}. ${esc(P(x.patientId).name)}</span><span class="sm muted">${esc(D(x.doctorId)?.name)}</span></div>`).join('')}</section>`:''}`;
+}
+
+function vLive(){
+  const t=today(),m=me(),q=db.queue.filter(x=>x.date===t),act=q.filter(x=>x.status!=='done'),now=nowT();
+  const mine=act.find(x=>x.doctorId===m&&x.status==='in');
+  const next=act.filter(x=>x.doctorId===m&&x.status==='waiting').sort((a,b)=>a.token-b.token)[0];
+  const appts=db.appointments.filter(a=>a.date===t&&a.status==='booked').sort((a,b)=>a.time.localeCompare(b.time));
+  const card=x=>{const p=P(x.patientId),w=minsAgo(x.time);return`<div class="qcard ${w>30?'late':''}"><div class="qcard-h"><b>${x.token}. ${esc(p.name)}</b><span class="sm ${w>30?'late':'muted'}">${w<1?'now':w+' min'}</span></div>${alerts(p)}<div class="qcard-f"><select data-change="assign" data-id="${x.id}" aria-label="Move to doctor">${db.staff.map(d=>`<option value="${d.id}" ${d.id===x.doctorId?'selected':''}>${esc(d.name)}</option>`).join('')}</select>${x.doctorId===m?`<button class="btn primary sm" data-act="call" data-id="${x.id}">Call in</button>`:''}</div></div>`};
+  const openPlan=pid=>{const c=db.cases.find(c=>c.patientId===pid&&c.status==='open');return c?`<div class="sm muted" style="margin-bottom:6px">${esc(c.title)}, ${c.plan?.sittings?`sitting ${visitsOf(c).length+1} of ${c.plan.sittings}`:'ongoing'}</div>`:''};
+  let chair;
+  if(mine){const p=P(mine.patientId);chair=`<div class="chair busy"><div><div class="chair-k">In your chair</div><div class="chair-name">${esc(p.name)}</div>${openPlan(p.id)}${alerts(p)}</div><button class="btn primary lg" data-act="openConsult" data-id="${mine.id}">Continue consultation</button></div>`}
+  else if(next){const p=P(next.patientId);chair=`<div class="chair"><div><div class="chair-k">Your chair is free. Next for you, token ${next.token}</div><div class="chair-name">${esc(p.name)}</div>${openPlan(p.id)}${alerts(p)}</div><button class="btn primary lg" data-act="call" data-id="${next.id}">Call in</button></div>`}
+  else chair=`<div class="chair"><div><div class="chair-k">Your chair is free</div><div class="chair-name">No one waiting for you</div></div></div>`;
+  return`${chair}
+  <div class="board">${db.staff.map(d=>{const w=act.filter(x=>x.doctorId===d.id&&x.status==='waiting').sort((a,b)=>a.token-b.token),inn=act.find(x=>x.doctorId===d.id&&x.status==='in');
+   return`<section class="col"><div class="col-h"><b>${esc(d.name)}${d.id===m?' (you)':''}</b><span class="badge ${inn?'warn':'ok'}">${inn?'With '+esc(P(inn.patientId).name.split(' ')[0]):'Free'}</span></div>${w.length?w.map(card).join(''):'<p class="sm muted" style="padding:0 6px">No one waiting.</p>'}</section>`}).join('')}
+   <section class="col"><div class="col-h"><b>Still to arrive</b><span class="badge">${appts.length}</span></div>${appts.length?appts.map(a=>`<div class="qcard ${a.time<now?'late':''}"><div class="qcard-h"><b>${a.time}&ensp;${esc(P(a.patientId).name)}</b></div><div class="sm muted">${esc(a.reason||'Appointment')} with ${esc(D(a.doctorId)?.name)}${a.time<now?'. Late':''}</div></div>`).join(''):'<p class="sm muted" style="padding:0 6px">No more bookings today.</p>'}</section>
+  </div>
+  <p class="sm muted">Seen today: ${q.filter(x=>x.status==='done').length}. This board refreshes every 10 seconds.</p>`;
+}
+
+function rowsHTML(){
+  return ui.svcRows.map((r,i)=>`<div class="svc-row"><select data-change="svcSel" data-i="${i}" aria-label="Service"><option value="">Choose a service</option>${db.services.filter(s=>s.active).map(s=>`<option value="${s.id}" ${r.serviceId===s.id?'selected':''}>${esc(s.name)}${can('money')?` (${inr(s.price)})`:''}</option>`).join('')}<option value="other" ${r.serviceId==='other'?'selected':''}>Other</option></select>${r.serviceId==='other'?`<input data-in="rowName" data-i="${i}" placeholder="Service name" value="${esc(r.name)}">`:''}${can('money')?`<input type="number" min="0" class="price" data-in="rowPrice" data-i="${i}" value="${esc(r.price)}" placeholder="₹" aria-label="Price">`:''}<button type="button" class="icon" data-act="rmSvc" data-i="${i}" aria-label="Remove service">×</button></div>`).join('');
+}
+function validRows(){return ui.svcRows.filter(r=>r.serviceId&&(r.serviceId!=='other'||r.name.trim()))}
+function recalc(){const t=sum(ui.svcRows,r=>r.price),el=$('#total');if(el)el.textContent=inr(t);const p=$('#paid');if(p&&!p.dataset.touched)p.value=t||'';updateSum()}
+function updateSum(){
+  const el=$('#sumLine');if(!el)return;const rows=validRows(),nm=$('input[name=nextMode]:checked')?.value||'self',nv=$('#nextVisit')?.value;
+  const nx=nm==='none'?'No follow-up':nm==='reception'?'Reception books the next visit':nv?`Next visit ${fmtD(nv)} at ${$('select[name=nextTime]')?.value}`:'No next visit picked yet';
+  el.innerHTML=rows.length?`<b>${rows.map(r=>esc(r.name)).join(', ')}${can('money')?`, ${inr(sum(rows,r=>r.price))}`:''}</b><span>${ui.teeth.size?`Teeth ${[...ui.teeth].sort().join(', ')}. `:''}${nx}</span>`:'<b>Choose at least one service</b><span>Then save to finish the visit</span>';
+}
+function updateClose(){const sel=$('select[name=caseId]');if(!sel)return;const cb=$('input[name=closeCase]');
+  if(sel.value==='new'){$('#newCase').hidden=false;cb.checked=$('select[name=sittings]').value==='1'}
+  else{$('#newCase').hidden=true;const c=db.cases.find(x=>x.id===sel.value);cb.checked=!!(c?.plan?.sittings&&visitsOf(c).length+1>=c.plan.sittings)}}
+function visitLi(v){
+  return`<li><div class="tl-h"><b>${fmtD(v.date)}</b><span class="sm muted">${esc(D(v.doctorId)?.name||'')}</span></div>
+  <div>${v.services.map(s=>esc(s.name)).join(', ')}${v.teeth?.length?`, teeth ${v.teeth.join(', ')}`:''}</div>
+  ${v.notes?`<div class="sm muted">${esc(v.notes)}</div>`:''}${v.rx?`<div class="rx">℞ ${esc(v.rx)}</div>`:''}
+  ${v.attachments.filter(a=>!a.data).map(a=>`<span class="badge">${esc(a.kind)}: ${esc(a.name)}</span>`).join(' ')}
+  ${v.attachments.some(a=>a.data)?`<div class="sm muted">${v.attachments.filter(a=>a.data).length} image${v.attachments.filter(a=>a.data).length>1?'s':''} attached</div>`:''}
+  ${v.nextVisit?`<div class="sm">Next visit ${fmtD(v.nextVisit)}${v.nextReason?`: ${esc(v.nextReason)}`:''}</div>`:''}
+  ${can('money')?`<div class="sm muted">Billed ${inr(v.total)}, ${v.collect==='pending'?'<span class="badge warn">to collect at reception</span>':`paid ${inr(v.paid)} by ${esc(v.payMode)}`}</div>`:''}</li>`;
+}
+function historyHTML(pid){
+  const cs=db.cases.filter(c=>c.patientId===pid).sort((a,b)=>(a.status==='open'?-1:1)-(b.status==='open'?-1:1)||b.opened.localeCompare(a.opened));
+  if(!cs.length)return'<div class="empty"><p>First visit. No history yet.</p></div>';
+  return cs.map(c=>{const vs=visitsOf(c).sort((a,b)=>b.date.localeCompare(a.date)),tot=sum(vs,v=>v.total),pd=sum(vs,v=>v.paid);
+    return`<div class="case"><div class="case-h"><div><b>${esc(c.title)}</b> <span class="badge ${c.status==='open'?'warn':'ok'}">${c.status==='open'?'Ongoing':'Completed'}</span></div>${prog(c)}</div>
+    ${can('money')?`<div class="sm muted">${c.plan?.estimate?`Estimate ${inr(c.plan.estimate)}, `:''}billed ${inr(tot)}${tot-pd>0?`, <b style="color:var(--bad)">${inr(tot-pd)} due</b>`:''}</div>`:''}
+    <ol class="tl">${vs.map(visitLi).join('')}</ol></div>`}).join('');
+}
+function galleryHTML(pid){
+  const imgs=db.visits.filter(v=>v.patientId===pid).sort((a,b)=>b.date.localeCompare(a.date)).flatMap(v=>v.attachments.map((a,i)=>({v,a,i}))).filter(x=>x.a.data);
+  return imgs.length?`<div class="gallery">${imgs.map(({v,a,i})=>`<button class="thumb" type="button" data-act="view" data-v="${v.id}" data-i="${i}"><img src="${a.data}" alt="${esc(a.kind)} from ${fmtD(v.date)}"><span>${esc(a.kind)}, ${fmtD(v.date)}</span></button>`).join('')}</div>`:'<p class="sm muted">No X-rays or photos yet.</p>';
+}
+function vConsult(){
+  const m=me(),mine=db.queue.filter(x=>x.date===today()&&x.status==='in'&&x.doctorId===m);
+  if(!mine.length)return head('Consultation')+`<section class="panel empty"><p>No patient in your chair. Call the next patient from the ${isLive()?'live board':'queue'}.</p><button class="btn primary" data-act="go" data-v="${isLive()?'live':'queue'}">${isLive()?'Back to live board':'Open queue'}</button></section>`;
+  const qi=mine.find(x=>x.id===ui.activeQ)||mine[0];
+  if(ui.activeQ!==qi.id){ui.activeQ=qi.id;ui.teeth=new Set();ui.draft={};ui.svcRows=[];ui.caseSel=null}
+  if(!ui.svcRows.length)ui.svcRows=[blankRow()];
+  const p=P(qi.patientId),open=db.cases.filter(c=>c.patientId===p.id&&c.status==='open');
+  const def=ui.caseSel||open[0]?.id||'new';
+  return`<div class="chead"><div><div class="sm muted">Token ${qi.token}, ${qi.source}</div><h1>${esc(p.name)}</h1><p class="sub">${p.age?p.age+' yrs':''}${p.gender?', '+esc(p.gender):''}${p.area?', '+esc(p.area):''}${ph(p)?', '+ph(p):''}</p>${alerts(p)}</div>${isLive()?'<button class="btn" data-act="go" data-v="live">Back to live board</button>':''}</div>
+  <form data-form="visit" class="consult">
+   <div>
+    <section class="panel"><div class="ph"><h2><span class="step">1</span>Chart</h2><span class="sm muted">Tap teeth to select them</span></div>
+     <div id="chartBox">${chartHTML(p.id,true)}</div>
+     <div class="marks"><span class="sm muted" style="margin-right:4px">Mark selected as</span>${Object.entries(MARKS).map(([k,l])=>`<button type="button" class="mk" data-act="mark" data-s="${k}"><i style="background:var(--t-${k})"></i>${l}</button>`).join('')}<button type="button" class="mk" data-act="mark" data-s=""><i style="background:var(--enamel);box-shadow:0 0 0 1px var(--tline)"></i>Healthy</button><button type="button" class="btn ghost sm" data-act="clearSel">Clear selection</button></div>
+    </section>
+    <section class="panel"><h2><span class="step">2</span>Case and treatment</h2>
+     <label>Case<select name="caseId" data-change="caseSel"><option value="new" ${def==='new'?'selected':''}>Start a new case</option>${open.map(c=>`<option value="${c.id}" ${def===c.id?'selected':''}>Continue: ${esc(c.title)}${c.plan?.sittings?`, sitting ${visitsOf(c).length+1} of ${c.plan.sittings}`:''}</option>`).join('')}</select></label>
+     <div id="newCase" class="fgrid3" ${def!=='new'?'hidden':''}><label>Case name<input name="caseTitle" placeholder="e.g. Root canal – tooth 36"></label><label>Planned sittings<select name="sittings" data-change="sittings">${[1,2,3,4,5,6].map(n=>`<option>${n}</option>`).join('')}</select></label>${can('money')?'<label>Estimate (₹)<input name="estimate" type="number" min="0" placeholder="Auto"></label>':'<span></span>'}</div>
+     <div class="lbl">Services today${ui.teeth.size?'':''}</div><div id="svcRows">${rowsHTML()}</div>
+     <button type="button" class="btn ghost sm" data-act="addSvc">Add another service</button>
+     <p class="sm muted" style="margin:10px 0 0">Treatments like filling, root canal, crown or extraction update the chart for the selected teeth when you save.</p>
+    </section>
+    <section class="panel"><h2><span class="step">3</span>Notes and prescription</h2>
+     <label>Clinical notes<textarea name="notes" rows="3" placeholder="Findings and what was done"></textarea></label>
+     <label>Prescription<textarea name="rx" id="rx" rows="3" placeholder="Tap a common medicine below or type"></textarea></label>
+     <div class="quick">${RX.map(r=>`<button type="button" class="rxchip" data-act="rx" data-v="${esc(r)}">${esc(r)}</button>`).join('')}</div>
+     <div class="fgrid"><label>Attach X-ray, photo or prescription<input type="file" name="files" multiple accept="image/*,application/pdf"></label><label>Attachment type<select name="attType"><option>X-ray</option><option>Photo</option><option>Prescription</option><option>Other</option></select></label></div>
+    </section>
+    <section class="panel"><h2><span class="step">4</span>Next visit${can('money')?' and payment':''}</h2>
+     <fieldset><div class="chips"><label class="chip"><input type="radio" name="nextMode" value="self" data-change="nextMode" checked>I’ll book it now</label><label class="chip"><input type="radio" name="nextMode" value="reception" data-change="nextMode">Reception will book it</label><label class="chip"><input type="radio" name="nextMode" value="none" data-change="nextMode">No follow-up needed</label></div>
+      <div id="nextFields"><p class="sm muted" id="nextHint" hidden style="margin:0 0 10px">Optional: suggest a date and reason. Reception confirms the slot with the patient.</p>
+       <div class="fgrid"><label>Date<input type="date" name="nextVisit" id="nextVisit" min="${today()}"></label><label id="nextTimeWrap">Time<select name="nextTime">${SLOTS.map(s=>`<option>${s}</option>`).join('')}</select></label><label class="span2">Reason<input name="nextReason" placeholder="e.g. RCT sitting 2"></label></div>
+       <div class="quick">${[[3,'In 3 days'],[7,'In 1 week'],[14,'In 2 weeks'],[30,'In 1 month'],[180,'In 6 months']].map(([d,l])=>`<button type="button" class="btn ghost sm" data-act="nv" data-days="${d}">${l}</button>`).join('')}</div>
+      </div></fieldset>
+     <label class="check"><input type="checkbox" name="closeCase">Treatment complete, close this case</label>
+     ${can('money')?`<div class="pay"><div><span class="sm muted">Total</span><b id="total">${inr(sum(ui.svcRows,r=>r.price))}</b></div><label>Collected now<input type="number" name="paid" id="paid" min="0"></label><label>Paid by<select name="payMode"><option>Cash</option><option>UPI</option><option>Card</option><option>At reception</option></select></label></div>`:'<p class="sm muted" style="margin:0">Reception collects payment when the patient leaves.</p>'}
+    </section>
+    <div class="savebar"><div id="sumLine"></div><button class="btn primary lg" id="saveVisit">Save visit and finish</button></div>
+   </div>
+   <div class="cside">
+    <section class="panel"><h2>Treatment history</h2>${historyHTML(p.id)}</section>
+    <section class="panel"><h2>X-rays and photos</h2>${galleryHTML(p.id)}</section>
+   </div>
+  </form>`;
+}
+
+function patientRows(){
+  const s=ui.psearch.toLowerCase().trim();
+  const r=db.patients.filter(p=>!s||p.name.toLowerCase().includes(s)||(can('contacts')&&p.phone.includes(s))).sort((a,b)=>a.name.localeCompare(b.name));
+  return r.map(p=>{const last=db.visits.filter(v=>v.patientId===p.id).map(v=>v.date).sort().pop(),oc=db.cases.filter(c=>c.patientId===p.id&&c.status==='open').length;
+    return`<tr class="click" data-act="ptOpen" data-id="${p.id}"><td><b>${esc(p.name)}</b></td><td>${ph(p)||'–'}</td><td>${esc(p.area||'')}</td><td>${fmtD(last)}</td><td>${oc?`<span class="badge warn">${oc} ongoing</span>`:'<span class="muted">–</span>'}</td></tr>`}).join('')||'<tr><td colspan="5" class="muted">No patients match.</td></tr>';
+}
+function vPatients(){
+  if(ui.patient){const p=P(ui.patient);if(p){const rt=roleType();
+    return`<button class="btn ghost sm" data-act="ptBack" style="margin-bottom:14px">All patients</button>
+    ${head(esc(p.name),`${p.age?p.age+' yrs, ':''}${esc(p.gender||'')}${p.area?', '+esc(p.area):''}. ${can('contacts')?esc(p.phone)+', ':''}registered ${fmtD(p.created)}`,rt!=='junior'?`${docSelect('ptdoc')}<button class="btn primary" data-act="ptQueue" data-id="${p.id}">Add to queue</button><button class="btn" data-act="bookFu" data-id="${p.id}">Book appointment</button>`:'')}
+    ${alerts(p)?`<div style="margin:-8px 0 16px">${alerts(p)}</div>`:''}
+    <section class="panel"><h2>Dental chart</h2>${chartHTML(p.id,false)}</section>
+    <div class="grid2"><section class="panel"><h2>Treatment history</h2>${historyHTML(p.id)}</section><section class="panel"><h2>X-rays and photos</h2>${galleryHTML(p.id)}</section></div>`}}
+  ui.patient=null;
+  return head('Patients',`${db.patients.length} registered`)+`<section class="panel"><input id="psearch" placeholder="Search by name${can('contacts')?' or mobile number':''}" value="${esc(ui.psearch)}" autocomplete="off" style="margin-bottom:12px">
+  <div class="tw"><table><thead><tr><th>Name</th><th>Mobile</th><th>Area</th><th>Last visit</th><th>Treatment</th></tr></thead><tbody id="ptRows">${patientRows()}</tbody></table></div></section>`;
+}
+
+function fillTpl(v){const p=P(v.patientId);return db.clinic.template.replace(/{name}/g,p.name).replace(/{date}/g,fmtD(v.nextVisit)).replace(/{reason}/g,v.nextReason||'check-up').replace(/{clinic}/g,db.clinic.name).replace(/{phone}/g,db.clinic.phone)}
+function vFollowups(){
+  const t=today(),wk=addDays(t,7),all=openFU();
+  const g={overdue:all.filter(v=>v.nextVisit<t),today:all.filter(v=>v.nextVisit===t),upcoming:all.filter(v=>v.nextVisit>t&&v.nextVisit<=wk)};
+  const names={overdue:'Overdue',today:'Due today',upcoming:'Next 7 days'};
+  const list=g[ui.fuTab].sort((a,b)=>a.nextVisit.localeCompare(b.nextVisit));
+  const stb={pending:['','Not contacted'],contacted:['warn','Contacted'],booked:['ok','Booked']};
+  return head('Follow-ups','Patients due back. Message, call or book them from here.')+`
+  <div class="tabs">${Object.keys(g).map(k=>`<button class="tab ${ui.fuTab===k?'on':''}" data-act="fuTab" data-t="${k}">${names[k]} (${g[k].length})</button>`).join('')}</div>
+  <section class="panel">${list.length?list.map(v=>{const p=P(v.patientId),msg=encodeURIComponent(fillTpl(v)),[c,l]=stb[v.fu]||stb.pending;
+   return`<div class="row-item"><div><b>${esc(p.name)}</b> <span class="badge ${c}">${l}</span><div class="sm muted">${esc(v.nextReason||'Follow-up')} due ${fmtD(v.nextVisit)}. Last seen by ${esc(D(v.doctorId)?.name)} for ${esc(v.services.map(s=>s.name).join(', '))}.</div><div class="sm">${esc(p.phone)}</div></div>
+   <div class="row-actions"><a class="btn wa sm" href="https://wa.me/91${p.phone}?text=${msg}" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm" href="sms:+91${p.phone}?body=${msg}">SMS</a><a class="btn sm" href="tel:+91${p.phone}">Call</a>${v.fu==='pending'?`<button class="btn ghost sm" data-act="contacted" data-id="${v.id}">Mark contacted</button>`:''}${v.fu!=='booked'?`<button class="btn primary sm" data-act="bookFu" data-id="${p.id}" data-r="${esc(v.nextReason||'')}">Book</button>`:''}</div></div>`}).join(''):'<div class="empty"><p>Nothing here. You’re all caught up.</p></div>'}</section>
+  <p class="sm muted">The message text is set in Admin, Clinic. In the live version these reminders go out automatically each morning.</p>`;
+}
+
+function vAdmin(){
+  const tabs={services:'Services and prices',expenses:'Expenses',staff:'Doctors and access',clinic:'Clinic'};
+  const markSel=(val,attrs)=>`<select ${attrs}><option value="">Nothing</option>${Object.entries(MARKS).map(([k,l])=>`<option value="${k}" ${val===k?'selected':''}>${l}</option>`).join('')}</select>`;
+  let body='';
+  if(ui.adminTab==='services')body=`<section class="panel"><h2>Services</h2><div class="tw"><table><thead><tr><th>Service</th><th>Price (₹)</th><th>Marks tooth as</th><th>Offered</th></tr></thead><tbody>${db.services.map(s=>`<tr><td>${esc(s.name)}</td><td><input type="number" min="0" value="${s.price}" data-change="svcPrice" data-id="${s.id}" style="width:120px" aria-label="Price"></td><td>${markSel(s.marks,`data-change="svcMark" data-id="${s.id}" aria-label="Marks tooth as"`)}</td><td><input type="checkbox" ${s.active?'checked':''} data-change="svcActive" data-id="${s.id}" aria-label="Offered"></td></tr>`).join('')}</tbody></table></div></section>
+   <section class="panel"><h2>Add a service</h2><form data-form="addService" class="fgrid3"><label>Service name<input name="name" required placeholder="e.g. Teeth whitening"></label><label>Price (₹)<input name="price" type="number" min="0" required></label><label>Marks tooth as ${markSel('','name="marks"')}</label><div class="span2"><button class="btn primary">Add service</button></div></form></section>`;
+  if(ui.adminTab==='expenses'){const ex=db.expenses.filter(e=>e.date.slice(0,7)===ui.expMonth).sort((a,b)=>b.date.localeCompare(a.date)),byCat=EXP_CATS.map(c=>[c,sum(ex.filter(e=>e.category===c),e=>e.amount)]).filter(x=>x[1]);
+   body=`<div class="grid2"><section class="panel"><h2>Add an expense</h2><form data-form="expense" class="fgrid"><label>Date<input type="date" name="date" value="${today()}" required></label><label>Category<select name="category">${EXP_CATS.map(c=>`<option>${c}</option>`).join('')}</select></label><label class="span2">Item<input name="item" required placeholder="e.g. Autoclave"></label><label>Amount (₹)<input type="number" name="amount" min="0" required></label><label>Vendor<input name="vendor"></label><div class="span2"><button class="btn primary">Add expense</button></div></form></section>
+   <section class="panel"><div class="ph"><h2>Spent ${inr(sum(ex,e=>e.amount))}</h2><input type="month" value="${ui.expMonth}" data-change="expMonth" style="width:auto" aria-label="Month"></div>${byCat.length?`<div class="chips">${byCat.map(([c,a])=>`<span class="badge">${c}: ${inr(a)}</span>`).join('')}</div>`:''}
+   ${ex.length?ex.map(e=>`<div class="row-item"><div><b>${esc(e.item)}</b> <span class="badge">${e.category}</span><div class="sm muted">${fmtD(e.date)}${e.vendor?', '+esc(e.vendor):''}</div></div><div class="row-actions"><b class="num">${inr(e.amount)}</b><button class="icon" data-act="delExp" data-id="${e.id}" aria-label="Delete ${esc(e.item)}">×</button></div></div>`).join(''):'<div class="empty"><p>No expenses this month.</p></div>'}</section></div>`}
+  if(ui.adminTab==='staff')body=`<section class="panel"><h2>Doctors and access</h2>${db.staff.map(d=>`<div class="row-item"><div><b>${esc(d.name)}</b> <span class="badge ${d.role==='owner'?'pri':''}">${d.role==='owner'?'Owner':'Junior'}</span></div>${d.role==='owner'?'<span class="sm muted">Sees everything</span>':`<div class="chips" style="margin:0">${PERMS.map(([k,l])=>`<label class="chip"><input type="checkbox" data-change="perm" data-id="${d.id}" data-k="${k}" ${d.perms?.[k]?'checked':''}>${l}</label>`).join('')}</div>`}</div>`).join('')}<p class="sm muted" style="margin:12px 0 0">By default a junior sees only their own queue and the clinical history of the patient in their chair. Tick a box to give them more.</p></section>
+   <section class="panel"><h2>Add a junior doctor</h2><form data-form="staff" class="fgrid"><label>Name<input name="name" required placeholder="Dr. "></label><div class="span2"><button class="btn primary">Add doctor</button></div></form></section>`;
+  if(ui.adminTab==='clinic')body=`<section class="panel"><h2>Clinic details</h2><form data-form="clinic"><div class="fgrid"><label>Clinic name<input name="name" value="${esc(db.clinic.name)}"></label><label>Phone<input name="phone" value="${esc(db.clinic.phone)}"></label></div>
+   <label>Reminder message<textarea name="template" rows="3">${esc(db.clinic.template)}</textarea></label><p class="sm muted" style="margin:-6px 0 12px">{name}, {date}, {reason}, {clinic} and {phone} fill in for each patient.</p><button class="btn primary">Save clinic details</button></form></section>
+   <section class="panel"><h2>Demo data</h2><p class="muted">Put the sample patients, queue and bookings back to how they started.</p><button class="btn" data-act="reset">Reset demo data</button></section>`;
+  return head('Admin')+`<div class="tabs">${Object.entries(tabs).map(([k,l])=>`<button class="tab ${ui.adminTab===k?'on':''}" data-act="adminTab" data-t="${k}">${l}</button>`).join('')}</div>${body}`;
+}
+
+const bl=(en,ta)=>`${en}<span class="ta">${ta}</span>`;
+function vKiosk(){
+  const s=ui.k,exit='<button class="kexit" data-act="exitKiosk">Staff: exit tablet mode</button>';
+  if(s.step==='done')return`<div class="kiosk kdone"><p class="muted">${bl('Your token number','உங்கள் டோக்கன் எண்')}</p><div class="ktok">${s.token}</div><h1>${bl('Please take a seat','தயவுசெய்து அமரவும்')}</h1><p class="muted">${esc(s.name)}, the doctor will call your token.</p>${exit}</div>`;
+  if(s.step==='back')return`<div class="kiosk"><h1>${bl('Welcome back','மீண்டும் வருக')}</h1><form data-form="kioskFind" style="margin-top:24px"><label>${bl('Mobile number','கைபேசி எண்')}<input name="phone" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" required autofocus></label><div class="pact"><button type="button" class="btn lg" data-act="kStep" data-s="start">${bl('Back','பின்செல்')}</button><button class="btn primary lg">${bl('Continue','தொடரவும்')}</button></div></form>${exit}</div>`;
+  if(s.step==='new')return`<div class="kiosk"><h1>${bl('Your details','உங்கள் விவரங்கள்')}</h1><form data-form="kioskNew" style="margin-top:24px">
+   <label>${bl('Full name','முழு பெயர்')}<input name="name" required autocomplete="off"></label>
+   <label>${bl('Mobile number','கைபேசி எண்')}<input name="phone" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" required value="${esc(s.phone||'')}"></label>
+   <div class="fgrid"><label>${bl('Age','வயது')}<input name="age" type="number" min="0" max="120"></label><label>${bl('Gender','பாலினம்')}<select name="gender"><option value="Male">Male / ஆண்</option><option value="Female">Female / பெண்</option><option value="Other">Other / மற்றவை</option></select></label></div>
+   <label>${bl('Area','பகுதி')}<input name="area"></label>
+   <fieldset><legend style="font-size:16px;color:var(--ink)">${bl('Do you have any of these?','இவற்றில் ஏதேனும் உள்ளதா?')}</legend><div class="chips">${MED.map(([m,t])=>`<label class="chip"><input type="checkbox" name="med" value="${m}">${m} / ${t}</label>`).join('')}</div></fieldset>
+   <div class="pact"><button type="button" class="btn lg" data-act="kStep" data-s="start">${bl('Back','பின்செல்')}</button><button class="btn primary lg">${bl('Register','பதிவு செய்')}</button></div></form>${exit}</div>`;
+  return`<div class="kiosk"><p class="muted" style="margin:0">${esc(db.clinic.name)}</p><h1>${bl('Welcome','வணக்கம்')}</h1><div class="kbig"><button class="kbtn" data-act="kStep" data-s="new">${bl('This is my first visit','இது என் முதல் வருகை')}</button><button class="kbtn" data-act="kStep" data-s="back">${bl('I have visited before','முன்பு வந்துள்ளேன்')}</button></div>${exit}</div>`;
+}
+function kioskDone(pid,token){ui.k={step:'done',token,name:P(pid).name};render();clearTimeout(kioskDone.t);kioskDone.t=setTimeout(()=>{if(ui.k.step==='done'){ui.k={step:'start'};if(ui.view==='kiosk')render()}},9000)}
+
+/* ---------- render ---------- */
+function roleOpts(){return db.staff.map(d=>`<option value="${d.id}" ${ui.role===d.id?'selected':''}>${esc(d.name)} (${d.role==='owner'?'owner':'junior'})</option>`).join('')+`<option value="reception" ${ui.role==='reception'?'selected':''}>Reception</option>`}
+function render(){
+  if(ui.role!=='reception'&&!D(ui.role))ui.role=owner().id;
+  document.documentElement.dataset.palette=db.clinic.palette||'linen';
+  const rt=roleType(),live=isLive(),kiosk=isKiosk();
+  const allowed=kiosk?['kiosk']:live?['live','consult']:navFor();let v=location.hash.slice(1);if(!allowed.includes(v))v=allowed[0];ui.view=v;
+  document.title=db.clinic.name+' – Clinic ERP demo';
+  const app=$('.app');app.classList.toggle('bare',live||kiosk);app.classList.toggle('kiosk',kiosk);
+  const t=today(),qc=db.queue.filter(x=>x.date===t&&x.status==='waiting'&&(rt!=='junior'||x.doctorId===me())).length,fc=dueFU().length,cc=checkoutList().length;
+  const brand=`<div class="brand"><span class="logo">${ic(TOOTHP)}</span><div><b>${esc(db.clinic.name)}</b><span class="demo">Demo</span></div></div>`;
+  const cur=db.clinic.palette||'linen';
+  const who=`<div class="who"><div class="lbl">Colour theme</div><div class="swatches" role="group" aria-label="Colour theme">${PALETTES.map(([k,l,a,b,c])=>`<button class="sw ${cur===k?'on':''}" data-act="palette" data-p="${k}" title="${l}" aria-label="${l} theme" aria-pressed="${cur===k}" style="--c1:${a};--c2:${b};--c3:${c}"></button>`).join('')}</div><label>Viewing as<select id="role">${roleOpts()}</select></label></div>`;
+  $('#side').innerHTML=kiosk?'':live?`<div class="livebar">${brand}<span class="pulse" aria-hidden="true"></span><b>Live clinic</b><span class="sm muted">${fmtD(t)}</span><span class="grow"></span><select id="role" aria-label="Viewing as">${roleOpts()}</select><button class="btn" data-act="exitLive">Exit live mode</button></div>`
+   :`${brand}<nav id="nav" aria-label="Sections">${rt==='owner'?`<button class="btn primary golive" data-act="goLive">${ICON.live}Go live</button>`:''}${allowed.map(k=>`<a href="#${k}" class="${k===v?'on':''}" ${k===v?'aria-current="page"':''}>${ICON[k]}${LABELS[k]}${k==='queue'&&qc?`<span class="count">${qc}</span>`:''}${k==='followups'&&fc?`<span class="count">${fc}</span>`:''}${k==='checkin'&&cc?`<span class="count">${cc}</span>`:''}</a>`).join('')}</nav>${who}`;
+  const views={live:vLive,kiosk:vKiosk,dashboard:vDashboard,checkin:vCheckin,appointments:vAppointments,queue:vQueue,consult:vConsult,followups:vFollowups,patients:vPatients,admin:vAdmin};
+  $('#main').innerHTML=views[v]();
+  if(v==='consult'){updateClose();updateSum()}
+}
+
+/* ---------- actions ---------- */
+function readFile(f,kind){return new Promise(res=>{
+  if(!f.type.startsWith('image/'))return res({kind,name:f.name,type:f.type,data:''});
+  const r=new FileReader();r.onerror=()=>res({kind,name:f.name,type:f.type,data:''});
+  r.onload=()=>{const img=new Image();img.onerror=()=>res({kind,name:f.name,type:f.type,data:''});
+    img.onload=()=>{const s=Math.min(1,900/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);res({kind,name:f.name,type:'image/jpeg',data:c.toDataURL('image/jpeg',.7)})};img.src=r.result};
+  r.readAsDataURL(f)})}
+async function saveVisit(f,fd){
+  const qi=db.queue.find(x=>x.id===ui.activeQ);if(!qi)return;
+  const rows=validRows().map(r=>({name:r.name.trim(),price:+r.price||0}));
+  if(!rows.length){toast('Choose at least one service');return}
+  const nm=fd.get('nextMode')||'self',nv=nm==='none'?'':fd.get('nextVisit'),nt=fd.get('nextTime'),nr=fd.get('nextReason').trim();
+  if(nm==='self'&&nv&&db.appointments.some(a=>a.date===nv&&a.time===nt&&a.doctorId===me()&&a.status==='booked')){toast(`You already have a booking on ${fmtD(nv)} at ${nt}. Pick another time.`);return}
+  const btn=$('#saveVisit');btn.disabled=true;btn.textContent='Saving…';
+  const total=sum(rows,r=>r.price);
+  let caseId=fd.get('caseId');
+  if(caseId==='new'){const c={id:uid(),patientId:qi.patientId,title:fd.get('caseTitle').trim()||rows[0].name+(ui.teeth.size?` – tooth ${[...ui.teeth].sort().join(', ')}`:''),status:'open',doctorId:me(),opened:today(),plan:{sittings:+fd.get('sittings')||1,estimate:can('money')?(+fd.get('estimate')||total):null}};db.cases.push(c);caseId=c.id}
+  const atts=await Promise.all([...f.querySelector('[name=files]').files].map(x=>readFile(x,fd.get('attType'))));
+  const mode=can('money')?fd.get('payMode'):'At reception',pr=fd.get('paid')??'',toRec=mode==='At reception',paid=toRec?0:(pr===''?total:+pr);
+  const ch={...(db.charts[qi.patientId]||{})};Object.entries(ui.draft).forEach(([t,s])=>{if(s)ch[t]=s;else delete ch[t]});
+  const teeth=[...ui.teeth].sort();rows.forEach(r=>{const s=db.services.find(x=>x.name===r.name);if(s?.marks)teeth.forEach(t=>ch[t]=s.marks)});
+  db.charts[qi.patientId]=ch;
+  db.visits.forEach(v=>{if(v.patientId===qi.patientId&&v.fu&&v.fu!=='done')v.fu='done'});
+  db.visits.push({id:uid(),patientId:qi.patientId,caseId,date:today(),doctorId:me(),teeth,services:rows,notes:fd.get('notes').trim(),rx:fd.get('rx').trim(),attachments:atts,total,paid,payMode:toRec?'Pending':mode,collect:toRec?'pending':null,nextVisit:nv||null,nextReason:nr,fu:nv?(nm==='self'?'booked':'pending'):null,book:nm==='reception'?'pending':null});
+  if(fd.get('closeCase'))db.cases.find(c=>c.id===caseId).status='closed';
+  qi.status='done';qi.outTime=nowT();
+  db.appointments.forEach(a=>{if(a.patientId===qi.patientId&&a.date===today()&&a.status==='checked-in')a.status='visited'});
+  if(nm==='self'&&nv)db.appointments.push({id:uid(),patientId:qi.patientId,date:nv,time:nt,doctorId:me(),reason:nr,status:'booked'});
+  ui.activeQ=null;ui.teeth=new Set();ui.draft={};ui.svcRows=[];ui.caseSel=null;
+  const hand=[toRec&&'payment',nm==='reception'&&'next appointment'].filter(Boolean);
+  save();toast('Visit saved'+(nm==='self'&&nv?`. Booked ${fmtD(nv)} at ${nt}`:'')+(hand.length?`. Sent to reception for ${hand.join(' and ')}`:''));go(isLive()?'live':'queue');
+}
+const redrawChart=()=>{const pid=db.queue.find(x=>x.id===ui.activeQ)?.patientId;if(pid)$('#chartBox').innerHTML=chartHTML(pid,true);updateSum()};
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act,id=el.dataset.id;
+  switch(a){
+    case'go':go(el.dataset.v);break;
+    case'pick':if(addToQueue(id,$('#qdoc-'+id)?.value,'walk-in')){ui.search='';render()}break;
+    case'checkinAppt':{const ap=db.appointments.find(x=>x.id===id);if(addToQueue(ap.patientId,ap.doctorId,'appointment')){ap.status='checked-in';save();render()}break}
+    case'cancelAppt':{const ap=db.appointments.find(x=>x.id===id);if(!confirm(`Cancel ${P(ap.patientId).name}’s appointment on ${fmtD(ap.date)} at ${ap.time}?`))break;ap.status='cancelled';save();toast('Appointment cancelled');render();break}
+    case'call':{const q=db.queue.find(x=>x.id===id);q.status='in';q.inTime=nowT();ui.activeQ=id;ui.teeth=new Set();ui.draft={};ui.svcRows=[];ui.caseSel=null;save();go('consult');break}
+    case'openConsult':ui.activeQ=id;go('consult');break;
+    case'tooth':{const t=el.dataset.t;ui.teeth.has(t)?ui.teeth.delete(t):ui.teeth.add(t);el.classList.toggle('sel');el.setAttribute('aria-pressed',ui.teeth.has(t));updateSum();break}
+    case'mark':{if(!ui.teeth.size){toast('Select one or more teeth first');break}ui.teeth.forEach(t=>ui.draft[t]=el.dataset.s);toast(`Marked ${[...ui.teeth].sort().join(', ')} as ${el.dataset.s?MARKS[el.dataset.s].toLowerCase():'healthy'}`);redrawChart();break}
+    case'clearSel':ui.teeth=new Set();redrawChart();break;
+    case'rx':{const r=$('#rx');r.value=(r.value.trim()?r.value.trim()+'\n':'')+el.dataset.v;break}
+    case'addSvc':ui.svcRows.push(blankRow());$('#svcRows').innerHTML=rowsHTML();recalc();break;
+    case'rmSvc':ui.svcRows.splice(+el.dataset.i,1);if(!ui.svcRows.length)ui.svcRows.push(blankRow());$('#svcRows').innerHTML=rowsHTML();recalc();break;
+    case'nv':$('#nextVisit').value=addDays(today(),+el.dataset.days);updateSum();break;
+    case'fuTab':ui.fuTab=el.dataset.t;render();break;
+    case'contacted':db.visits.find(x=>x.id===id).fu='contacted';save();render();break;
+    case'bookFu':ui.apptPatient=id;ui.apptReason=el.dataset.r||'';ui.apptDate=today();go('appointments');break;
+    case'ptOpen':ui.patient=id;render();scrollTo(0,0);break;
+    case'ptOpenNav':ui.patient=id;go('patients');break;
+    case'ptBack':ui.patient=null;render();break;
+    case'ptQueue':if(addToQueue(id,$('#ptdoc')?.value,'walk-in'))render();break;
+    case'adminTab':ui.adminTab=el.dataset.t;render();break;
+    case'delExp':{const ex=db.expenses.find(x=>x.id===id);if(!confirm(`Delete ${ex.item} (${inr(ex.amount)})?`))break;db.expenses=db.expenses.filter(x=>x.id!==id);save();render();break}
+    case'reset':if(confirm('Reset all demo data?')){db=seed();ui.patient=null;ui.activeQ=null;save();render();toast('Demo data reset')}break;
+    case'view':{const at=db.visits.find(x=>x.id===el.dataset.v).attachments[+el.dataset.i];$('#lbImg').src=at.data;$('#lbImg').alt=at.kind;$('#lbCap').textContent=`${at.kind}: ${at.name}`;$('#lb').hidden=false;break}
+    case'lbClose':$('#lb').hidden=true;break;
+    case'palette':{db.clinic.palette=el.dataset.p;save();render();toast(`${PALETTES.find(x=>x[0]===el.dataset.p)[1]} theme applied`);break}
+    case'goLive':ui.live=true;store('live','1');go('live');break;
+    case'exitLive':ui.live=false;store('live','0');go('dashboard');break;
+    case'kioskOn':ui.kiosk=true;ui.k={step:'start'};store('kiosk','1');go('kiosk');break;
+    case'exitKiosk':ui.kiosk=false;store('kiosk','0');go(roleType()==='owner'&&ui.live?'live':'checkin');break;
+    case'kStep':ui.k={step:el.dataset.s};render();break;
+    case'bookNext':{const v=db.visits.find(x=>x.id===id),date=$('#bd-'+id).value,time=$('#bt-'+id).value,doc=$('#bdoc-'+id).value,reason=$('#br-'+id).value.trim();
+      if(!date){toast('Pick a date');break}
+      if(db.appointments.some(a=>a.date===date&&a.time===time&&a.doctorId===doc&&a.status==='booked')){toast(`${D(doc).name} is already booked at ${time} on ${fmtD(date)}`);break}
+      db.appointments.push({id:uid(),patientId:v.patientId,date,time,doctorId:doc,reason,status:'booked'});
+      v.book=null;v.nextVisit=date;v.nextReason=reason;v.fu='booked';save();toast(`Booked ${P(v.patientId).name} for ${fmtD(date)} at ${time}`);render();break}
+    case'noNext':{const v=db.visits.find(x=>x.id===id);v.book=null;if(v.fu&&v.fu!=='booked')v.fu='done';save();toast('Marked as no follow-up needed');render();break}
+    case'collect':{const v=db.visits.find(x=>x.id===id),amt=+$('#amt-'+id).value||0;if(amt<=0){toast('Enter the amount received');break}v.paid+=amt;v.total=Math.max(v.total,v.paid);v.payMode=$('#mode-'+id).value;v.payments=[...(v.payments||[]),{date:today(),amount:amt,mode:v.payMode}];v.collect=null;save();toast(`${inr(amt)} received from ${P(v.patientId).name}`);render();break}
+  }
+});
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='role'){ui.role=el.value;ui.patient=null;store('role',el.value);render();return}
+  if(el.id==='nextVisit'||el.name==='nextTime'){updateSum();return}
+  const c=el.dataset.change;if(!c)return;
+  switch(c){
+    case'assign':{const q=db.queue.find(x=>x.id===el.dataset.id);q.doctorId=el.value;save();toast(`Moved to ${D(el.value).name}’s queue`);render();break}
+    case'svcSel':{const r=ui.svcRows[+el.dataset.i];r.serviceId=el.value;if(el.value&&el.value!=='other'){const s=db.services.find(x=>x.id===el.value);r.name=s.name;r.price=s.price}else{r.name='';r.price=''}$('#svcRows').innerHTML=rowsHTML();recalc();break}
+    case'caseSel':ui.caseSel=el.value;updateClose();break;
+    case'sittings':updateClose();break;
+    case'nextMode':{const m=el.value;$('#nextFields').hidden=m==='none';$('#nextTimeWrap').hidden=m!=='self';$('#nextHint').hidden=m!=='reception';updateSum();break}
+    case'apPt':$('#apNew').hidden=el.value!=='new';break;
+    case'apDate':ui.apptDate=el.value||today();render();break;
+    case'svcPrice':db.services.find(x=>x.id===el.dataset.id).price=+el.value||0;save();toast('Price updated');break;
+    case'svcMark':db.services.find(x=>x.id===el.dataset.id).marks=el.value||null;save();toast('Chart rule updated');break;
+    case'svcActive':db.services.find(x=>x.id===el.dataset.id).active=el.checked;save();toast(el.checked?'Service offered':'Service hidden from consultations');break;
+    case'perm':{const d=D(el.dataset.id);d.perms={...(d.perms||{}),[el.dataset.k]:el.checked};save();toast(`Access updated for ${d.name}`);break}
+    case'expMonth':ui.expMonth=el.value||today().slice(0,7);render();break;
+  }
+});
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.id==='search'){ui.search=el.value;$('#results').innerHTML=resultsHTML();return}
+  if(el.id==='psearch'){ui.psearch=el.value;$('#ptRows').innerHTML=patientRows();return}
+  if(el.id==='paid'){el.dataset.touched='1';return}
+  if(el.id==='nextVisit'){updateSum();return}
+  const k=el.dataset.in;if(!k)return;const r=ui.svcRows[+el.dataset.i];
+  if(k==='rowName'){r.name=el.value;updateSum()}else{r.price=el.value;recalc()}
+});
+document.addEventListener('submit',async e=>{
+  const f=e.target,k=f.dataset.form;if(!k)return;e.preventDefault();const fd=new FormData(f);
+  const newPt=(o)=>{const p={id:uid(),name:o.name,phone:o.phone,age:o.age||'',gender:o.gender||'',area:o.area||'',med:o.med||[],medNotes:o.medNotes||'',created:today()};db.patients.push(p);return p};
+  switch(k){
+    case'newPatient':{const phone=fd.get('phone').trim(),ex=db.patients.find(p=>p.phone===phone);
+      if(ex){toast(`${ex.name} is already registered with this number`);ui.search=phone;render();return}
+      const p=newPt({name:fd.get('name').trim(),phone,age:fd.get('age'),gender:fd.get('gender'),area:fd.get('area').trim(),med:fd.getAll('med'),medNotes:fd.get('medNotes').trim()});
+      addToQueue(p.id,fd.get('doctorId'),'walk-in');render();break}
+    case'kioskNew':{const phone=fd.get('phone').trim();let p=db.patients.find(x=>x.phone===phone);
+      if(!p)p=newPt({name:fd.get('name').trim(),phone,age:fd.get('age'),gender:fd.get('gender'),area:fd.get('area').trim(),med:fd.getAll('med')});
+      const existing=db.queue.find(x=>x.date===today()&&x.patientId===p.id&&x.status!=='done');
+      const tok=existing?existing.token:addToQueue(p.id,owner().id,'tablet');kioskDone(p.id,tok);break}
+    case'kioskFind':{const phone=fd.get('phone').trim(),p=db.patients.find(x=>x.phone===phone);
+      if(!p){toast('We could not find this number. Please register. / இந்த எண் கிடைக்கவில்லை');ui.k={step:'new',phone};render();return}
+      const appt=db.appointments.find(a=>a.patientId===p.id&&a.date===today()&&a.status==='booked');
+      const existing=db.queue.find(x=>x.date===today()&&x.patientId===p.id&&x.status!=='done');
+      const tok=existing?existing.token:addToQueue(p.id,appt?.doctorId||owner().id,appt?'appointment':'tablet');if(appt&&!existing)appt.status='checked-in';save();kioskDone(p.id,tok);break}
+    case'appt':{let pid=fd.get('patientId');
+      if(pid==='new'){const name=(fd.get('newName')||'').trim(),phone=(fd.get('newPhone')||'').trim();
+        if(!name||!/^\d{10}$/.test(phone)){toast('Enter a name and a 10-digit mobile number');return}
+        const ex=db.patients.find(p=>p.phone===phone);pid=ex?ex.id:newPt({name,phone}).id}
+      const date=fd.get('date'),time=fd.get('time'),doctorId=fd.get('doctorId');
+      if(db.appointments.some(a=>a.date===date&&a.time===time&&a.doctorId===doctorId&&a.status==='booked')){toast(`${D(doctorId).name} is already booked at ${time}`);return}
+      db.appointments.push({id:uid(),patientId:pid,date,time,doctorId,reason:fd.get('reason').trim(),status:'booked'});
+      db.visits.forEach(v=>{if(v.patientId===pid&&v.fu&&v.fu!=='done')v.fu='booked'});
+      ui.apptPatient=null;ui.apptReason='';ui.apptDate=date;save();toast(`Booked ${P(pid).name} for ${fmtD(date)} at ${time}`);render();break}
+    case'visit':await saveVisit(f,fd);break;
+    case'addService':db.services.push({id:uid(),name:fd.get('name').trim(),price:+fd.get('price')||0,active:true,marks:fd.get('marks')||null});save();render();toast('Service added');break;
+    case'expense':db.expenses.push({id:uid(),date:fd.get('date'),category:fd.get('category'),item:fd.get('item').trim(),amount:+fd.get('amount')||0,vendor:fd.get('vendor').trim()});ui.expMonth=fd.get('date').slice(0,7);save();render();toast('Expense added');break;
+    case'staff':db.staff.push({id:uid(),name:fd.get('name').trim(),role:'junior',perms:{}});save();render();toast('Doctor added');break;
+    case'clinic':db.clinic={name:fd.get('name').trim()||'Clinic',phone:fd.get('phone').trim(),template:fd.get('template')};save();render();toast('Clinic details saved');break;
+  }
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#lb').hidden=true});
+setInterval(()=>{if(ui.view==='live'&&!document.activeElement?.matches('select,input,textarea')){try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s)}catch(e){}render()}},10000);
+window.addEventListener('hashchange',render);
+render();
+</script>
+</body>
+</html>
