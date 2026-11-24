@@ -3,7 +3,7 @@
 A frontend-only demo of a dental clinic management system for a small clinic in Tambaram, Chennai.
 Everything runs in the browser: there is no server, database, login service or secret.
 
-- Data: `localStorage`, one versioned key (`dentalDemo.v1`)
+- Data: `localStorage`, one versioned key (`dentalDemo.v2`)
 - X-rays, photos and PDFs: IndexedDB (images resized to max 1200px JPEG)
 - Sample clinic loads on first visit, with dates relative to today
 - Admin → Clinic has Reset demo data, Export backup (JSON) and Import backup

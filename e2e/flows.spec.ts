@@ -10,7 +10,7 @@ test('reception registers a patient; a duplicate mobile is blocked', async ({ pa
   await page.getByLabel('Diabetes').check()
   await page.getByLabel('Send to').selectOption({ label: 'Dr. Priya' })
   await page.getByRole('button', { name: 'Register and add to queue' }).click()
-  await expect(toast(page)).toHaveText('Token 3: Karthik Raja added to Dr. Priya’s queue')
+  await expect(toast(page)).toHaveText('Token 12: Karthik Raja added to Dr. Priya’s queue')
   await expect(page.getByLabel('Full name')).toHaveValue('')
 
   await page.getByLabel('Full name').fill('Someone Else')
@@ -25,7 +25,7 @@ test('reception registers a patient; a duplicate mobile is blocked', async ({ pa
   await expect(row).toContainText('Dr. Priya')
   await expect(row).toContainText('Diabetes')
   await nav(page, 'Patients')
-  await expect(page.getByText('6 registered')).toBeVisible()
+  await expect(page.getByText('81 registered')).toBeVisible()
 })
 
 test('appointment check-in', async ({ page }) => {
@@ -33,8 +33,8 @@ test('appointment check-in', async ({ page }) => {
   const appt = page.locator('.row-item').filter({ hasText: 'Ramesh Kumar' })
   await expect(appt).toContainText('11:30')
   await appt.getByRole('button', { name: 'Check in' }).click()
-  await expect(toast(page)).toHaveText('Token 3: Ramesh Kumar added to Dr. Senthil’s queue')
-  await expect(page.getByText('No appointments left to check in today.')).toBeVisible()
+  await expect(toast(page)).toHaveText('Token 12: Ramesh Kumar added to Dr. Senthil’s queue')
+  await expect(page.locator('section', { hasText: 'Today’s appointments' })).not.toContainText('Ramesh Kumar')
   await nav(page, 'Queue')
   await expect(page.locator('.qrow').filter({ hasText: 'Ramesh Kumar' })).toContainText('appointment')
   await nav(page, 'Appointments')
@@ -131,7 +131,7 @@ test('handover to reception, then checkout desk payment and booking', async ({ p
   await expect(toast(page)).toHaveText('Visit saved. Sent to reception for payment and next appointment')
 
   await switchUser(page, 'Reception')
-  await expect(page.locator('#nav a', { hasText: 'Check-in' }).locator('.count')).toHaveText('2')
+  await expect(page.locator('#nav a', { hasText: 'Check-in' }).locator('.count')).toHaveText('4')
   const desk = page.getByLabel('Checkout desk')
   const card = desk.locator('.co').filter({ hasText: 'Mohammed Irfan' })
   await expect(card).toContainText('Payment due: ₹300')
@@ -151,12 +151,12 @@ test('handover to reception, then checkout desk payment and booking', async ({ p
   await ganesh.getByLabel('Paid by').selectOption('UPI')
   await ganesh.getByRole('button', { name: 'Mark paid' }).click()
   await expect(toast(page)).toHaveText('₹500 received from Ganesh M')
-  await expect(page.getByLabel('Checkout desk')).toHaveCount(0)
-  await expect(page.locator('#nav a', { hasText: 'Check-in' }).locator('.count')).toHaveCount(0)
+  await expect(desk).not.toContainText('Ganesh M')
+  await expect(page.locator('#nav a', { hasText: 'Check-in' }).locator('.count')).toHaveText('2')
 
   await switchUser(page, 'Dr. Senthil (owner)')
   await page.getByRole('button', { name: 'Exit live mode' }).click()
-  await expect(fig(page, 'Collected today')).toHaveText('₹800')
+  await expect(fig(page, 'Collected today')).toHaveText('₹4,250') // ₹3,450 seeded this morning + ₹300 + ₹500
 })
 
 test('junior sees only their own queue, with no phone numbers or prices in the DOM', async ({ page }) => {
@@ -164,13 +164,16 @@ test('junior sees only their own queue, with no phone numbers or prices in the D
   await page.getByLabel('Move Lakshmi S to doctor').selectOption({ label: 'Dr. Priya' })
   await switchUser(page, 'Dr. Priya (junior)')
   await expect(page.getByRole('heading', { name: 'Today’s queue' })).toBeVisible()
-  await expect(page.locator('#nav a')).toHaveText(['Queue1', 'Consultation'])
-  await expect(page.locator('.qrow')).toHaveCount(1)
-  await expect(page.locator('.qrow')).toContainText('Lakshmi S')
+  await expect(page.locator('#nav a')).toHaveText(['Queue3', 'Consultation'])
+  await expect(page.locator('.qrow')).toHaveCount(3)
+  await expect(page.locator('.qlist')).toContainText('Lakshmi S')
+  await expect(page.locator('main')).not.toContainText('Mohammed Irfan')
+  await expect(page.locator('main')).not.toContainText('Dr. Arun')
 
   const clean = async () => {
     const html = await page.content()
     for (const p of PHONES) expect(html).not.toContain(p)
+    expect(html.replace(/<(style|script|svg)[\s\S]*?<\/\1>/g, '')).not.toMatch(/(?<!\d)[6-9]\d{9}(?!\d)/) // no mobile number of any patient
     expect(html).not.toContain('₹')
     expect(html).not.toMatch(/Billed|Estimate|Collected/)
   }
@@ -179,7 +182,7 @@ test('junior sees only their own queue, with no phone numbers or prices in the D
     await page.goto('/#/' + path)
     await expect(page).toHaveURL(/#\/queue/)
   }
-  await page.getByRole('button', { name: 'Call in' }).click()
+  await page.locator('.qrow', { hasText: 'Lakshmi S' }).getByRole('button', { name: 'Call in' }).click()
   await expect(page.getByRole('heading', { name: 'Lakshmi S' })).toBeVisible()
   await expect(page.getByText('Scaling and cleaning')).toBeVisible() // clinical history is there
   await clean()
@@ -200,29 +203,30 @@ test('granting permission reveals the phone number', async ({ page }) => {
   await nav(page, 'Queue')
   await page.getByLabel('Assign doctor for Lakshmi S').selectOption({ label: 'Dr. Priya' })
   await switchUser(page, 'Dr. Priya (junior)')
-  await expect(page.locator('.qrow')).not.toContainText('9884023456')
+  await expect(page.locator('.qlist')).not.toContainText(/[6-9]\d{9}/)
   await switchUser(page, 'Dr. Senthil (owner)')
   await nav(page, 'Admin')
   await page.getByRole('button', { name: 'Doctors and access' }).click()
   await page.getByRole('group', { name: 'Access for Dr. Priya' }).getByLabel('Phone numbers').check()
   await expect(toast(page)).toHaveText('Access updated for Dr. Priya')
   await switchUser(page, 'Dr. Priya (junior)')
-  await expect(page.locator('.qrow')).toContainText('9884023456')
+  await expect(page.locator('.qlist')).toContainText('9884023456')
   await expect(page.locator('#nav a')).toHaveCount(2) // still no patient list or money
   await switchUser(page, 'Dr. Arun (junior)')
-  await expect(page.getByText('No one is waiting.')).toBeVisible()
+  await expect(page.locator('.qrow')).toHaveCount(3)
+  await expect(page.locator('.qlist')).not.toContainText(/[6-9]\d{9}/)
 })
 
 test('follow-ups close when the patient returns', async ({ page }) => {
   await login(page, 'Reception')
   await nav(page, 'Follow-ups')
-  await expect(page.getByRole('button', { name: 'Due today (1)' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Due today (5)' })).toBeVisible()
   const ramesh = page.locator('.row-item').filter({ hasText: 'Ramesh Kumar' })
   await expect(ramesh.getByRole('link', { name: 'WhatsApp Ramesh Kumar' })).toHaveAttribute('href', /^https:\/\/wa\.me\/919840012345\?text=Hello%20Ramesh%20Kumar/)
   await ramesh.getByRole('button', { name: 'Mark contacted' }).click()
   await expect(ramesh).toContainText('Contacted')
-  await page.getByRole('button', { name: 'Overdue (1)' }).click()
-  await expect(page.locator('.row-item')).toContainText('Lakshmi S')
+  await page.getByRole('button', { name: 'Overdue (10)' }).click()
+  await expect(page.locator('.row-item').filter({ hasText: 'Lakshmi S' })).toContainText('Review after scaling')
 
   await switchUser(page, 'Dr. Senthil (owner)') // Lakshmi is token 2 in his queue
   await page.getByLabel('Dr. Senthil’s queue').locator('.qcard').filter({ hasText: 'Lakshmi S' }).getByRole('button', { name: 'Call in' }).click()
@@ -233,8 +237,8 @@ test('follow-ups close when the patient returns', async ({ page }) => {
 
   await switchUser(page, 'Reception')
   await nav(page, 'Follow-ups')
-  await expect(page.getByRole('button', { name: 'Overdue (0)' })).toBeVisible()
-  await expect(page.locator('#nav a', { hasText: 'Follow-ups' }).locator('.count')).toHaveText('1')
+  await expect(page.getByRole('button', { name: 'Overdue (9)' })).toBeVisible()
+  await expect(page.locator('#nav a', { hasText: 'Follow-ups' }).locator('.count')).toHaveText('10')
 })
 
 test('patient tablet: new, returning and unknown-number flows', async ({ page }) => {
@@ -249,14 +253,14 @@ test('patient tablet: new, returning and unknown-number flows', async ({ page })
   await page.getByLabel(/Mobile number/).fill('9000022222')
   await page.getByLabel(/Allergies/).check()
   await page.getByRole('button', { name: /Register/ }).click()
-  await expect(page.locator('.ktok')).toHaveText('3')
+  await expect(page.locator('.ktok')).toHaveText('12')
   await expect(page.getByText('Meena K, the doctor will call your token.')).toBeVisible()
   await expect(page.getByRole('button', { name: /This is my first visit/ })).toBeVisible({ timeout: 12000 }) // returns to start after 9 s
 
   await page.getByRole('button', { name: /I have visited before/ }).click()
   await page.getByLabel(/Mobile number/).fill('9840012345')
   await page.getByRole('button', { name: /Continue/ }).click()
-  await expect(page.locator('.ktok')).toHaveText('4')
+  await expect(page.locator('.ktok')).toHaveText('13')
   await page.reload() // tablet mode survives a reload
   await expect(page.getByRole('button', { name: /I have visited before/ })).toBeVisible()
 
@@ -275,25 +279,26 @@ test('patient tablet: new, returning and unknown-number flows', async ({ page })
 
 test('dashboard totals', async ({ page }) => {
   await loginOwnerNormal(page)
-  const month = day().slice(0, 7), inMonth = (n: number) => day(n).startsWith(month)
-  const inr = (n: number) => '₹' + n.toLocaleString('en-IN')
-  const col = (inMonth(-14) ? 3000 : 0) + (inMonth(-10) ? 1500 : 0) + (inMonth(-2) ? 1200 : 0)
-  const spent = (inMonth(-6) ? 8500 : 0) + (inMonth(-3) ? 4200 : 0)
-  await expect(fig(page, 'Patients today')).toHaveText('2')
-  await expect(fig(page, 'Collected today')).toHaveText('₹0')
-  await expect(fig(page, 'Collected this month')).toHaveText(inr(col))
-  await expect(fig(page, 'Spent this month')).toHaveText(inr(spent))
-  await expect(page.locator('.ledger')).toContainText('Net ' + (col - spent < 0 ? '−' : '') + inr(Math.abs(col - spent)))
-  await expect(fig(page, 'Follow-ups to chase')).toHaveText('2')
-  await expect(page.locator('section', { hasText: 'Ongoing treatment plans' })).toContainText('Sitting 1 of 3')
+  const rupees = async (label: string) => Number((await fig(page, label).innerText()).replace(/[^0-9]/g, ''))
+  await expect(fig(page, 'Patients today')).toHaveText('11')
+  await expect(page.locator('.ledger')).toContainText('8 waiting or in a chair')
+  await expect(fig(page, 'Collected today')).toHaveText('₹3,450') // the two visits paid in the room this morning
+  await expect(fig(page, 'Follow-ups to chase')).toHaveText('11')
+  const month = await rupees('Collected this month'), spent = await rupees('Spent this month')
+  expect(month).toBeGreaterThan(spent)
+  await expect(page.locator('.ledger')).toContainText('Net ₹' + (month - spent).toLocaleString('en-IN'))
+  await expect(page.locator('section', { hasText: 'Ongoing treatment plans' }).locator('.row-item')).toHaveCount(18)
+  await expect(page.locator('section', { hasText: 'Ongoing treatment plans' })).toContainText('Sitting 2 of 3')
+  const arun = page.locator('section', { hasText: 'Doctors today' }).locator('tr', { hasText: 'Dr. Arun' })
+  await expect(arun).toContainText('₹0')
 
   // Yesterday's visit paid today counts today, under the doctor who saw the patient.
   await nav(page, 'Check-in')
-  await page.getByLabel('Checkout desk').getByRole('button', { name: 'Mark paid' }).click()
+  await page.getByLabel('Checkout desk').locator('.co', { hasText: 'Ganesh M' }).getByRole('button', { name: 'Mark paid' }).click()
   await nav(page, 'Dashboard')
-  await expect(fig(page, 'Collected today')).toHaveText('₹800')
-  await expect(fig(page, 'Collected this month')).toHaveText(inr(col + 800))
-  await expect(page.locator('section', { hasText: 'Doctors today' }).locator('tr', { hasText: 'Dr. Arun' })).toContainText('₹800')
+  await expect(fig(page, 'Collected today')).toHaveText('₹4,250')
+  expect(await rupees('Collected this month')).toBe(month + 800)
+  await expect(arun).toContainText('₹800')
 })
 
 test('admin: prices, expenses, clinic details and theme', async ({ page }) => {
@@ -328,7 +333,7 @@ test('data survives a reload; backup round-trips; reset restores the seed', asyn
   await page.getByRole('button', { name: 'Register and add to queue' }).click()
   await page.reload()
   await nav(page, 'Patients')
-  await expect(page.getByText('6 registered')).toBeVisible()
+  await expect(page.getByText('81 registered')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Karthik Raja' })).toBeVisible()
 
   await switchUser(page, 'Dr. Senthil (owner)')
@@ -342,18 +347,33 @@ test('data survives a reload; backup round-trips; reset restores the seed', asyn
   await page.getByRole('button', { name: 'Reset demo data' }).click()
   await expect(toast(page)).toHaveText('Demo data reset')
   await nav(page, 'Patients')
-  await expect(page.getByText('5 registered')).toBeVisible()
+  await expect(page.getByText('80 registered')).toBeVisible()
 
   await nav(page, 'Admin')
   await page.getByRole('button', { name: 'Clinic', exact: true }).click()
-  page.once('dialog', d => { expect(d.message()).toContain('6 patients'); d.accept() })
+  page.once('dialog', d => { expect(d.message()).toContain('81 patients'); d.accept() })
   await page.getByLabel('Backup file').setInputFiles(path)
   await expect(toast(page)).toHaveText('Backup imported')
   await nav(page, 'Patients')
-  await expect(page.getByText('6 registered')).toBeVisible()
+  await expect(page.getByText('81 registered')).toBeVisible()
 
   await nav(page, 'Admin')
   await page.getByRole('button', { name: 'Clinic', exact: true }).click()
   await page.getByLabel('Backup file').setInputFiles({ name: 'notes.json', mimeType: 'application/json', buffer: Buffer.from('{"hello":1}') })
   await expect(toast(page)).toContainText('not a clinic backup')
+})
+
+test('a browser holding the old v1 data starts fresh on the new sample clinic', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => {
+    localStorage.clear()
+    localStorage.setItem('dentalDemo.v1', JSON.stringify({ version: 1, db: { stale: true } }))
+    sessionStorage.setItem('dentalDemo.v1.session', JSON.stringify({ role: 'd1', live: false, kiosk: true }))
+  })
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Who is using the clinic system?' })).toBeVisible() // remembered user, live and tablet mode are gone
+  expect(await page.evaluate(() => [localStorage.getItem('dentalDemo.v1'), sessionStorage.getItem('dentalDemo.v1.session'), Object.keys(localStorage)])).toEqual([null, null, ['dentalDemo.v2']])
+  await login(page, 'Reception')
+  await nav(page, 'Patients')
+  await expect(page.getByText('80 registered')).toBeVisible()
 })

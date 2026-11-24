@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { addToQueue, applyChart, bookAppointment, bookNext, can, collect, collectedOn, due, dueFU, kioskFind, navFor, openFU, paid, registerPatient, roleType, saveVisit, slotTaken, type VisitInput } from './logic'
-import { seed } from './seed'
+import { baseSeed, seed as fullSeed } from './seed'
+
+const seed = baseSeed // rule tests run on the five original patients
 import { createStorage, KEY, migrate, VERSION, type KV } from './storage'
 import { addDays, today } from './util'
 
@@ -177,7 +179,7 @@ describe('queue and visits', () => {
 describe('storage', () => {
   it('seeds on first load and saves under one versioned key', () => {
     const kv = memKV(), db = createStorage(kv).load()
-    expect(db.patients).toHaveLength(5)
+    expect(db.patients).toHaveLength(80)
     expect(Object.keys(kv.data)).toEqual([KEY])
     expect(JSON.parse(kv.data[KEY]).version).toBe(VERSION)
   })
@@ -185,13 +187,13 @@ describe('storage', () => {
     const kv = memKV(), st = createStorage(kv), db = st.load()
     db.patients.push({ ...db.patients[0], id: 'x', phone: '9000000001' })
     st.save(db)
-    expect(createStorage(kv).load().patients).toHaveLength(6)
-    expect(st.reset().patients).toHaveLength(5)
-    expect(createStorage(kv).load().patients).toHaveLength(5)
+    expect(createStorage(kv).load().patients).toHaveLength(81)
+    expect(st.reset().patients).toHaveLength(80)
+    expect(createStorage(kv).load().patients).toHaveLength(80)
   })
   it('falls back to the seed on corrupt or newer data', () => {
-    expect(createStorage(memKV({ [KEY]: '{not json' })).load().patients).toHaveLength(5)
-    expect(migrate({ version: VERSION + 1, db: seed() })).toBeNull()
+    expect(createStorage(memKV({ [KEY]: '{not json' })).load().patients).toHaveLength(80)
+    expect(migrate({ version: VERSION + 1, db: fullSeed() })).toBeNull()
     expect(migrate({ version: VERSION, db: { clinic: {} } })).toBeNull()
   })
   it('migrates the prototype shape (v0) to payments by date', () => {

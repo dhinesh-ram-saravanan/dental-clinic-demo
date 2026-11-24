@@ -2,7 +2,9 @@ import type { Attachment, Db, Visit } from './types'
 import { seed } from './seed'
 import { uid } from './util'
 
-export const KEY = 'dentalDemo.v1'
+// Bump the suffix whenever the seed changes: every browser then starts fresh on the new sample clinic.
+export const KEY = 'dentalDemo.v2'
+export const OLD_KEYS = ['dentalDemo.v1']
 export const VERSION = 1
 
 /** Anything with the localStorage shape. Swap this (and store.ts) for API calls to add a real backend. */

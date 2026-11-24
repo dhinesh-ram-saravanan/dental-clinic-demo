@@ -22,7 +22,7 @@ referenced by id (bytes live in IndexedDB).
 
 ## Storage layer
 - `src/lib/storage.ts`: `createStorage(kv)` over any `getItem/setItem/removeItem` (localStorage in the app,
-  a Map in tests). One key `dentalDemo.v1` holding `{version, db}`. `migrate()` upgrades older shapes
+  a Map in tests). One key `dentalDemo.v2` holding `{version, db}`. `migrate()` upgrades older shapes
   (v0 = the prototype's shape) and falls back to the seed if the data is unusable.
 - `src/lib/store.ts`: in-memory state + `useSyncExternalStore`; `update(fn)` clones, mutates, saves, notifies.
   A `storage` event keeps other tabs in sync. Session (user, live, tablet mode) is a second small key.

@@ -1,15 +1,12 @@
 import type { Db, Mark, Patient, Service, Visit } from './types'
-import { addDays, today, uid } from './util'
+import { enrich, xraySvg } from './seedGen'
+import { addDays, today } from './util'
 
-export function xraySvg() {
-  const s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120"><defs><radialGradient id="g" cx=".5" cy=".55" r=".75"><stop offset="0" stop-color="#40464b"/><stop offset="1" stop-color="#090b0d"/></radialGradient></defs><rect width="160" height="120" fill="url(#g)"/><g fill="#d4d9dc" opacity=".82"><path d="M56 22c-9 0-14 7-12 17l3 22c2 14 5 38 11 38s6-18 7-28c1-5 5-5 6 0 1 10 2 28 8 28s9-24 11-38l3-22c2-10-3-17-12-17-5 0-8 2-12 2s-8-2-13-2z"/></g><g fill="#d4d9dc" opacity=".45"><path d="M16 26c-6 0-9 5-8 12l3 22c1 10 3 30 7 30s5-16 6-24l3-28c1-7-3-12-11-12z"/><path d="M126 26c-6 0-9 5-8 12l3 22c1 10 3 30 7 30s5-16 6-24l3-28c1-7-3-12-11-12z"/></g><path d="M62 52 Q63 74 60 96 M78 52 Q78 74 81 96" stroke="#fff" stroke-width="2.4" fill="none"/><text x="6" y="114" font-family="sans-serif" font-size="8" fill="#8a949b">IOPA 36</text></svg>`
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(s)
-}
-
-/** Same sample clinic as the prototype; every date is relative to today. */
-export function seed(): Db {
+/** The prototype's five patients and their records; every date is relative to today. */
+export function baseSeed(): Db {
   const t = today(), d = (n: number) => addDays(t, n)
-  const S = (name: string, price: number, marks: Mark | null = null): Service => ({ id: uid(), name, price, active: true, marks })
+  let sid = 0
+  const S = (name: string, price: number, marks: Mark | null = null): Service => ({ id: 's' + ++sid, name, price, active: true, marks })
   const services = [S('Consultation', 300), S('X-ray (IOPA)', 250), S('Scaling & polishing', 1500), S('Filling (composite)', 1200, 'filled'), S('Root canal treatment', 6000, 'rct'), S('Extraction', 800, 'missing'), S('Crown (PFM)', 7000, 'crown'), S('Implant', 25000, 'implant'), S('Braces consultation', 500)]
   const pt = (id: string, name: string, phone: string, age: number, gender: string, area: string, med: string[] = []): Patient =>
     ({ id, name, phone, age, gender, area, med, medNotes: '', created: d(-30) })
@@ -46,9 +43,16 @@ export function seed(): Db {
       { id: 'a2', patientId: 'p4', date: d(5), time: '17:00', doctorId: 'd1', reason: 'Filling on 24', status: 'booked' },
     ],
     expenses: [
-      { id: uid(), date: d(-6), category: 'Equipment', item: 'LED curing light', amount: 8500, vendor: 'Dental Mart, T. Nagar' },
-      { id: uid(), date: d(-3), category: 'Consumables', item: 'Composite kit and gloves', amount: 4200, vendor: 'Sri Dental Supplies' },
+      { id: 'e1', date: d(-6), category: 'Equipment', item: 'LED curing light', amount: 8500, vendor: 'Dental Mart, T. Nagar' },
+      { id: 'e2', date: d(-3), category: 'Consumables', item: 'Composite kit and gloves', amount: 4200, vendor: 'Sri Dental Supplies' },
     ],
     charts: { p1: { '36': 'rct', '46': 'filled', '18': 'missing' }, p3: { '37': 'decay' }, p4: { '14': 'filled', '24': 'decay' }, p5: { '48': 'missing', '38': 'missing' } },
   }
+}
+
+/** The full sample clinic: the base records plus about six months of generated history. */
+export function seed(): Db {
+  const db = baseSeed()
+  enrich(db)
+  return db
 }

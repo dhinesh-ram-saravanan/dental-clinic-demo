@@ -30,7 +30,7 @@ async function visitAll(page: Page, shoot: (name: string) => Promise<void>) {
   for (const n of ['Services and prices', 'Expenses', 'Doctors and access', 'Clinic']) { await page.getByRole('button', { name: n, exact: true }).click(); await each('admin-' + n.split(' ')[0].toLowerCase()) }
   await switchUser(page, 'Dr. Priya (junior)')
   await each('junior-queue')
-  await page.getByRole('button', { name: 'Call in' }).click()
+  await page.locator('.qrow', { hasText: 'Lakshmi S' }).getByRole('button', { name: 'Call in' }).click()
   await each('junior-consult')
   await switchUser(page, 'Reception')
   await each('reception-checkin')

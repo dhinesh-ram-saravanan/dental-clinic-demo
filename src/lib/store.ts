@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import type { Db } from './types'
-import { createStorage, KEY } from './storage'
+import { clearFiles } from './files'
+import { createStorage, KEY, OLD_KEYS } from './storage'
 
 function createStore<T>(init: T) {
   let s = init
@@ -23,6 +24,10 @@ export function toast(msg: string) {
 export const useToast = () => useSyncExternalStore(toastStore.sub, toastStore.get)
 
 /* ---------- clinic data ---------- */
+// Data from an older seed version: drop it, its attachments and its remembered user.
+try {
+  for (const k of OLD_KEYS) if (localStorage.getItem(k) !== null) { localStorage.removeItem(k); sessionStorage.removeItem(k + '.session'); void clearFiles() }
+} catch { /* storage blocked: nothing to clean */ }
 const storage = createStorage(localStorage)
 const dbStore = createStore(storage.load())
 export const useDb = () => useSyncExternalStore(dbStore.sub, dbStore.get)
